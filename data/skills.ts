@@ -7,15 +7,13 @@
 
 import {
   siFigma,
-  siGithub,
-  siJavascript,
+  siMaze,
   siMiro,
   siNextdotjs,
   siNodedotjs,
   siReact,
   siTailwindcss,
   siTypescript,
-  siVercel,
 } from "simple-icons";
 
 export type Tool = {
@@ -34,62 +32,54 @@ export type Discipline = {
   tools: Tool[];
 };
 
+// Order follows the story: design first, then engineering.
 export const disciplines: Discipline[] = [
+  {
+    id: "experience",
+    eyebrow: "I design",
+    title: "Human-Centred Design.",
+    description:
+      "Understanding people, challenging assumptions and creating experiences that just make sense.",
+    skills: [
+      "UX Research",
+      "Product Strategy",
+      "Human-Centred Design",
+      "Interaction Design",
+      "Information Architecture",
+      "Design Systems",
+      "Prototyping",
+      "Usability Testing",
+    ],
+    tools: [
+      { name: "Figma", icon: siFigma },
+      { name: "FigJam", monogram: "Fj" }, // not in simple-icons: add /public/logos/figjam.svg and set src
+      { name: "Miro", icon: siMiro },
+      { name: "Maze", icon: siMaze },
+    ],
+  },
   {
     id: "engineering",
     eyebrow: "I build",
-    title: "Engineering",
+    title: "Cutting-Edge Engineering.",
     description:
-      "I turn ideas and designs into functional, scalable digital products using modern engineering practices and technologies.",
+      "Turning great designs into high-performing, scalable digital products built for the real world.",
     skills: [
-      "Full-Stack Development",
-      "Front-End Engineering",
-      "React & Next.js",
-      "JavaScript & TypeScript",
-      "Node.js",
-      "REST API Integration",
-      "Responsive Web Development",
-      "Component-Based Architecture",
-      "Cloud & Deployment Workflows",
-      "Technical Architecture",
+      "Frontend Development",
+      "Backend Development",
+      "Product Engineering",
+      "API Development & Integrations",
+      "Cloud Architecture",
+      "DevOps",
+      "AI Integration",
+      "Technical Strategy",
     ],
     tools: [
       { name: "React", icon: siReact },
       { name: "Next.js", icon: siNextdotjs },
       { name: "TypeScript", icon: siTypescript },
-      { name: "JavaScript", icon: siJavascript },
-      { name: "Node.js", icon: siNodedotjs },
       { name: "Tailwind CSS", icon: siTailwindcss },
-      { name: "GitHub", icon: siGithub },
-      { name: "Vercel", icon: siVercel },
-    ],
-  },
-  {
-    id: "experience",
-    eyebrow: "I design",
-    title: "User Experience",
-    description:
-      "I create intuitive, human-centred experiences by combining research, strategy, interaction design, and product thinking.",
-    skills: [
-      "UX Strategy",
-      "Human-Centred Design",
-      "Design Thinking",
-      "User Research",
-      "Interaction Design",
-      "Information Architecture",
-      "User Journey Mapping",
-      "Wireframing & Prototyping",
-      "Design Systems",
-      "Usability Testing",
-      "Product Strategy",
-      "UX Writing",
-    ],
-    tools: [
-      { name: "Figma", icon: siFigma },
-      { name: "FigJam", monogram: "Fj" }, // add /public/logos/figjam.svg and set src
-      { name: "Adobe Illustrator", monogram: "Ai" }, // add /public/logos/illustrator.svg
-      { name: "Adobe Photoshop", monogram: "Ps" }, // add /public/logos/photoshop.svg
-      { name: "Miro", icon: siMiro },
+      { name: "Node.js", icon: siNodedotjs },
+      { name: "AWS", monogram: "AWS" }, // not in simple-icons: add /public/logos/aws.svg and set src
     ],
   },
 ];

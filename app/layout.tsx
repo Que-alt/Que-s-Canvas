@@ -1,24 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
-import localFont from "next/font/local";
-import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import Providers from "@/components/Providers";
 import { site } from "@/data/site";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
-const lufga = localFont({
-  variable: "--font-lufga",
-  display: "swap",
-  src: [
-    { path: "./fonts/Lufga-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Lufga-Italic.woff2", weight: "400", style: "italic" },
-    { path: "./fonts/Lufga-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/Lufga-SemiBold.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/Lufga-Bold.woff2", weight: "700", style: "normal" },
-  ],
-});
 
 const title = `${site.name} — ${site.role}`;
 
@@ -44,7 +31,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${lufga.variable}`}>
+    <html lang="en" className={outfit.variable}>
       <body className="font-sans antialiased">
         <a href="#main" className="skip-link">
           Skip to content
@@ -52,7 +39,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <Navigation />
           <main id="main">{children}</main>
-          <Footer />
         </Providers>
       </body>
     </html>

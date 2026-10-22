@@ -15,18 +15,18 @@ export default function SkillsSection() {
       <div className="mx-auto max-w-[1680px]">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-end">
           <div>
-            <p className="font-label text-xs uppercase tracking-[0.16em] text-ink-2">Skills & Capabilities</p>
+            <p className="font-label text-xs uppercase tracking-[0.16em] text-ink-2">The how — Skills & Capabilities</p>
             <AnimatedText
               as="h2"
               mode="inView"
-              text="Two disciplines. *One creative mindset.*"
+              text="So, how do I *make it happen?*"
               className="mt-5 text-[clamp(2.5rem,5.6vw,6.5rem)] font-medium leading-[0.95] tracking-[-0.05em] text-balance"
             />
           </div>
           <Reveal delay={0.2}>
             <p className="max-w-[42ch] text-lg leading-relaxed text-ink-2 md:text-xl">
-              I combine design thinking with engineering expertise to create digital products that are
-              intuitive, functional, and built to scale.
+              By combining human-centred thinking with cutting-edge engineering to turn ambitious ideas into real
+              products.
             </p>
           </Reveal>
         </div>
@@ -59,7 +59,7 @@ function DisciplineColumn({ discipline: d }: { discipline: Discipline }) {
       className="flex w-full flex-col rounded-[32px] border border-line bg-white p-7 sm:p-10 xl:p-14"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-10 place-items-center rounded-full bg-brand text-white">
+        <span className="grid size-10 place-items-center rounded-full bg-brand bg-iridescent text-white">
           <Icon className="size-4.5" aria-hidden />
         </span>
         <span className="font-label text-xs font-medium uppercase tracking-[0.18em]">{d.eyebrow}</span>

@@ -5,7 +5,7 @@ import ProjectCover from "./ProjectCover";
 
 type Props = { project: Project; index: number; total: number };
 
-export default function ProjectCard({ project, index, total }: Props) {
+export default function ProjectCard({ project, index }: Props) {
   return (
     <li className="work-card shrink-0 snap-start" data-card>
       <Link
@@ -25,32 +25,28 @@ export default function ProjectCard({ project, index, total }: Props) {
             </div>
           </div>
 
-          <span className="absolute left-5 top-5 rounded-full bg-white/85 px-3 py-1 font-label text-[11px] tracking-[0.08em] text-ink backdrop-blur">
-            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-          </span>
-          <span className="absolute right-5 top-5 grid size-12 translate-y-2 scale-90 place-items-center rounded-full bg-night bg-morpheus text-white opacity-0 transition duration-500 ease-out-expo group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+          <span className="absolute right-5 top-5 grid size-12 translate-y-2 scale-90 place-items-center rounded-full bg-brand bg-iridescent text-white opacity-0 transition duration-500 ease-out-expo group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
             <ArrowUpRight className="size-5" aria-hidden />
           </span>
         </div>
 
-        <div className="mt-6 flex items-start justify-between gap-6">
-          <h3 className="text-[clamp(1.5rem,2.2vw,2.25rem)] font-medium leading-[1.05] tracking-[-0.03em]">
-            {project.title}
-          </h3>
-          {project.year && (
-            <span className="mt-1.5 shrink-0 font-label text-xs text-ink-2">{project.year}</span>
-          )}
-        </div>
-        <p className="mt-2 font-label text-[11px] uppercase tracking-[0.12em] text-ink-2">
-          {project.categories.join(" · ")}
-        </p>
-        <p className="mt-3 max-w-[54ch] text-[15px] leading-relaxed text-ink-2 lg:line-clamp-2">
+        {/* Title, a short description, then the skills I brought to the project */}
+        <h3 className="mt-6 text-[clamp(1.6rem,2.4vw,2.5rem)] font-medium leading-[1.05] tracking-[-0.035em] text-balance">
+          {project.title}
+        </h3>
+        <p className="mt-3 max-w-[58ch] text-[15px] leading-relaxed text-ink-2 md:text-base lg:line-clamp-2">
           {project.description}
         </p>
-        <p className="mt-3 text-sm">
-          <span className="mr-2 font-label text-[11px] uppercase tracking-[0.12em] text-ink-2">Role</span>
-          {project.role ?? <span className="italic text-ink-2">To be added</span>}
-        </p>
+        {project.roles?.length ? (
+          <p className="mt-4 text-[clamp(1rem,1.25vw,1.25rem)] leading-snug text-ink-2">
+            {project.roles.map((r, i) => (
+              <span key={r}>
+                {i > 0 && <span aria-hidden className="mx-2">•</span>}
+                {r}
+              </span>
+            ))}
+          </p>
+        ) : null}
       </Link>
     </li>
   );

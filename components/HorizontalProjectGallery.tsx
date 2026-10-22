@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import type { Project } from "@/data/projects";
 import AnimatedText from "./AnimatedText";
 import ProjectCard from "./ProjectCard";
 
-const pad = (n: number) => String(n).padStart(2, "0");
 const PINNED = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 
 /**
@@ -18,8 +17,6 @@ const PINNED = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)"
 export default function HorizontalProjectGallery({ projects }: { projects: Project[] }) {
   const section = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
-  const bar = useRef<HTMLSpanElement>(null);
-  const counter = useRef<HTMLSpanElement>(null);
   const cards = useRef<HTMLUListElement>(null);
 
   useGSAP(
@@ -30,7 +27,6 @@ export default function HorizontalProjectGallery({ projects }: { projects: Proje
         const s = section.current!;
         const t = track.current!;
         const distance = () => Math.max(0, t.scrollWidth - window.innerWidth);
-        let shown = 1;
 
         const tween = gsap.to(t, {
           x: () => -distance(),
@@ -43,14 +39,6 @@ export default function HorizontalProjectGallery({ projects }: { projects: Proje
             scrub: 0.8,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              gsap.set(bar.current, { scaleX: self.progress });
-              const idx = Math.min(projects.length, Math.round(self.progress * (projects.length - 1)) + 1);
-              if (idx !== shown && counter.current) {
-                shown = idx;
-                counter.current.textContent = pad(idx);
-              }
-            },
           },
         });
 
@@ -127,23 +115,17 @@ export default function HorizontalProjectGallery({ projects }: { projects: Proje
         {/* Intro panel */}
         <div className="px-gutter motion-safe:lg:w-[34vw] motion-safe:lg:shrink-0 motion-safe:lg:px-0 motion-safe:lg:pr-[5vw]">
           <p data-intro-fade className="font-label text-xs uppercase tracking-[0.16em] text-ink-2">
-            ({pad(projects.length)}) Selected Works
+            Selected Work — The impact
           </p>
           <AnimatedText
             as="h2"
             id="work-title"
-            text="Here's what I've *brought to life.*"
+            text="Let's dive deeper &{pause}*See the impact.*"
             className="mt-5 text-[clamp(2.6rem,4.6vw,5.75rem)] font-medium leading-[0.95] tracking-[-0.045em]"
           />
           <p data-intro-fade className="mt-6 max-w-[36ch] text-lg leading-relaxed text-ink-2 md:text-xl">
-            From ambitious ideas to real-world digital experiences. Here&apos;s a glimpse of the work behind the
-            words.
-          </p>
-          <p data-intro-fade className="mt-10 hidden items-center gap-3 font-label text-[11px] uppercase tracking-[0.16em] text-ink-2 motion-safe:lg:flex">
-            Keep scrolling <ArrowRight className="size-3.5" aria-hidden />
-          </p>
-          <p data-intro-fade className="mt-8 flex items-center gap-3 font-label text-[11px] uppercase tracking-[0.16em] text-ink-2 motion-safe:lg:hidden">
-            Swipe or scroll to explore <ArrowRight className="size-3.5" aria-hidden />
+            From transforming digital banking to building platforms used by millions, here&apos;s a closer look at
+            the work I&apos;ve helped bring to life.
           </p>
         </div>
 
@@ -179,20 +161,6 @@ export default function HorizontalProjectGallery({ projects }: { projects: Proje
             </Link>
           </li>
         </ul>
-      </div>
-
-      {/* Progress rail (pinned desktop only) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 hidden items-center gap-6 px-gutter pb-8 font-label text-[11px] uppercase tracking-[0.14em] text-ink-2 motion-safe:lg:flex"
-      >
-        <span>Selected Works</span>
-        <span className="relative h-px flex-1 bg-line">
-          <span ref={bar} className="absolute inset-0 origin-left scale-x-0 bg-brand" />
-        </span>
-        <span className="tabular-nums">
-          <span ref={counter}>01</span> / {pad(projects.length)}
-        </span>
       </div>
     </section>
   );

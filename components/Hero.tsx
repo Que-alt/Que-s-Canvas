@@ -307,7 +307,7 @@ export default function Hero() {
           Scroll
         </span>
         <span className="relative h-px flex-1 bg-line" aria-hidden>
-          <span data-progress className="absolute inset-0 origin-left scale-x-0 bg-brand" />
+          <span data-progress className="absolute inset-0 origin-left scale-x-0 bg-brand bg-iridescent-flat" />
         </span>
         <span className="shrink-0 tabular-nums" aria-hidden>
           <span ref={counter}>01</span> / {pad(heroScenes.length)}

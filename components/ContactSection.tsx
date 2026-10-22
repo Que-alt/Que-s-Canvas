@@ -1,66 +1,60 @@
 "use client";
 
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
-import { ArrowUpRight, Download } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { PointerEvent } from "react";
 import { site } from "@/data/site";
 import AnimatedText from "./AnimatedText";
 import Reveal from "./Reveal";
 
 export default function ContactSection() {
-  const { email, linkedin, github, cv } = site.contact;
+  const { email, linkedin, github } = site.contact;
 
+  // Sits under the invitation copy; anything left empty in data/site.ts is simply not shown
   const links = [
-    { label: "Email", value: email || null, href: email ? `mailto:${email}` : null },
-    { label: "LinkedIn", value: linkedin ? "View profile" : null, href: linkedin || null },
-    { label: "GitHub", value: github ? "View profile" : null, href: github || null },
-    { label: "CV", value: cv ? "Download CV" : null, href: cv || null, download: true },
-  ];
+    { label: "LinkedIn", href: linkedin, external: true },
+    { label: "GitHub", href: github, external: true },
+    { label: email, href: email ? `mailto:${email}` : "", external: false },
+  ].filter((l) => l.href);
 
   return (
-    <section data-header="dark" id="contact" aria-labelledby="contact-title" className="bg-night bg-morpheus-down px-gutter pb-16 pt-32 text-white md:pt-44">
+    <section data-header="dark" id="contact" aria-labelledby="contact-title" className="bg-night bg-morpheus-down px-gutter pb-24 pt-32 text-white md:pb-32 md:pt-44">
       <div className="mx-auto max-w-[1680px]">
-        <p className="font-label text-xs uppercase tracking-[0.16em] text-white/55">Contact</p>
+        <p className="font-label text-xs uppercase tracking-[0.16em] text-white/55">What&apos;s next?</p>
         <AnimatedText
           as="h2"
           mode="inView"
-          text="Have something *interesting* in mind?"
+          text="The next big idea *could be ours.*"
           className="mt-6 max-w-[13ch] text-[clamp(2.75rem,8vw,9.5rem)] font-medium leading-[0.92] tracking-[-0.055em]"
         />
 
         <div className="mt-14 grid gap-12 lg:mt-20 lg:grid-cols-[1fr_auto] lg:items-end">
           <Reveal>
             <p className="max-w-[44ch] text-lg leading-relaxed text-white/65 md:text-xl">
-              Whether it&apos;s a digital product, a challenging design problem, or an ambitious technology
-              idea, I&apos;d love to hear about it.
+              Have something ambitious in mind? Let&apos;s design it, build it and bring it to life.
             </p>
+            <ul aria-label="Find me online" className="mt-8 flex flex-wrap gap-3 md:mt-10">
+              {links.map((l) => (
+                <li key={l.label}>
+                  <a
+                    href={l.href}
+                    {...(l.external ? { target: "_blank", rel: "noreferrer" } : {})}
+                    className="group inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-base text-white/85 transition-colors duration-500 ease-out-expo hover:border-white/50 hover:bg-white/10 hover:text-white"
+                  >
+                    {l.label}
+                    <ArrowUpRight
+                      className="size-4 transition-transform duration-500 ease-out-expo group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                      aria-hidden
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </Reveal>
           <Reveal delay={0.15}>
             <MagneticCTA href={email ? `mailto:${email}` : undefined} />
           </Reveal>
         </div>
-
-        <ul className="mt-24 grid border-t border-white/15 sm:grid-cols-2 lg:mt-32 lg:grid-cols-4">
-          {links.map((l) => (
-            <li key={l.label} className="border-b border-white/15 py-6 sm:pr-6 lg:border-b-0 lg:py-8">
-              <p className="font-label text-[11px] uppercase tracking-[0.16em] text-white/50">{l.label}</p>
-              {l.href ? (
-                <a
-                  href={l.href}
-                  {...(l.download ? { download: "" } : { target: l.label === "Email" ? undefined : "_blank", rel: "noreferrer" })}
-                  className="link-underline mt-2 inline-flex items-center gap-2 text-lg"
-                >
-                  {l.value}
-                  {l.download ? <Download className="size-4" aria-hidden /> : <ArrowUpRight className="size-4" aria-hidden />}
-                </a>
-              ) : (
-                <p className="mt-2 text-lg text-white/35">
-                  Placeholder <span className="text-sm">— add in data/site.ts</span>
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );
@@ -92,7 +86,7 @@ function MagneticCTA({ href }: { href?: string }) {
       style={{ x, y }}
       className="group inline-flex items-center gap-5 rounded-full bg-white py-2.5 pl-8 pr-2.5 font-display text-xl font-medium tracking-[-0.02em] text-ink md:text-2xl"
     >
-      Let&apos;s build something.
+      Let&apos;s create something
       <span className="grid size-14 place-items-center rounded-full bg-accent text-ink transition-transform duration-500 ease-out-expo group-hover:rotate-45 md:size-16">
         <ArrowUpRight className="size-6" aria-hidden />
       </span>

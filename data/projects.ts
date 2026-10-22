@@ -29,7 +29,8 @@ export type Project = {
   client?: string;
   categories: string[];
   description: string;
-  role?: string; // short role shown on the card, e.g. "Lead Product Designer"
+  role?: string; // role shown on the case-study page, e.g. "Lead Product Designer"
+  roles?: string[]; // skill tags shown on the card, e.g. ["UX Strategy", "Front End Dev"]
   year?: string;
   cover?: ProjectImage;
   tint: string; // background colour used behind the placeholder cover
@@ -39,6 +40,7 @@ export type Project = {
 export const projects: Project[] = [
   {
     slug: "safaricom-super-app",
+    roles: ["UX Strategy", "UX Design", "Product Design"],
     title: "Safaricom Super App",
     client: "Safaricom",
     categories: ["UX Strategy", "Product Design", "Digital Experience"],
@@ -48,6 +50,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kcb-digital-banking",
+    roles: ["UX Design", "Design Systems"],
     title: "KCB Digital Banking",
     client: "KCB",
     categories: ["UX Design", "Digital Banking", "Design Systems"],
@@ -57,6 +60,7 @@ export const projects: Project[] = [
   },
   {
     slug: "brrd",
+    roles: ["UX Design", "Fullstack Dev"],
     title: "Brrd",
     categories: ["Product Innovation", "UX", "Full-Stack Engineering"],
     description:
@@ -65,6 +69,7 @@ export const projects: Project[] = [
   },
   {
     slug: "prudential-digital-experience",
+    roles: ["UX Design", "Front End Dev", "AI Integration"],
     title: "Prudential Digital Experience",
     client: "Prudential",
     categories: ["Web Experience", "AI", "Digital Transformation"],
@@ -74,6 +79,7 @@ export const projects: Project[] = [
   },
   {
     slug: "minet-digital-ecosystem",
+    roles: ["UX Strategy", "UX Design", "Front End Dev"],
     title: "Minet Digital Ecosystem",
     client: "Minet",
     categories: ["UX Strategy", "Digital Platforms", "Engineering"],
@@ -83,6 +89,7 @@ export const projects: Project[] = [
   },
   {
     slug: "kcb-ubuntu-design-system",
+    roles: ["Design Systems", "UX Design", "Front End Dev"],
     title: "KCB Ubuntu Design System",
     client: "KCB",
     categories: ["Design Systems", "Product Design", "UX Engineering"],

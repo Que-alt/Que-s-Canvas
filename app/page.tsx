@@ -2,9 +2,10 @@ import BrandGallery from "@/components/BrandGallery";
 import ContactSection from "@/components/ContactSection";
 import Hero from "@/components/Hero";
 import HorizontalProjectGallery from "@/components/HorizontalProjectGallery";
+import OverlappingVideoSection from "@/components/OverlappingVideoSection";
 import SkillsSection from "@/components/SkillsSection";
 import { projects } from "@/data/projects";
-import { site } from "@/data/site";
+import { showreel, site } from "@/data/site";
 
 export default function Home() {
   const personJsonLd = {
@@ -24,6 +25,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
       <Hero />
+      <OverlappingVideoSection {...showreel} />
       <HorizontalProjectGallery projects={projects} />
       <SkillsSection />
       <BrandGallery />

@@ -217,7 +217,7 @@ export default async function CaseStudyPage({ params }: Props) {
             </p>
             <span className="mt-8 inline-flex items-center gap-3 text-ink-2 transition-colors group-hover:text-ink">
               View case study
-              <span className="grid size-10 place-items-center rounded-full bg-night bg-morpheus text-white transition-transform duration-500 ease-out-expo group-hover:rotate-45">
+              <span className="grid size-10 place-items-center rounded-full bg-brand bg-iridescent text-white transition-transform duration-500 ease-out-expo group-hover:rotate-45">
                 <ArrowUpRight className="size-4" aria-hidden />
               </span>
             </span>

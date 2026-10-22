@@ -18,7 +18,7 @@
   --color-accent: #00e893; /* interactive highlights */
   --color-brand: #4a1f70; /* signature elements */
 
-  --font-sans: var(--font-lufga), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-label: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 
@@ -28,7 +28,8 @@
 :root {
   --gutter: clamp(1rem, 5vw, 4.5rem);
   /* Height of project imagery inside the pinned gallery. */
-  --media-h: clamp(16rem, calc(100svh - 22rem), 38rem);
+  /* leaves room under the cards for their text and the floating navigation pill */
+  --media-h: clamp(16rem, calc(100svh - 25rem), 38rem);
 }
 
 /* Morpheus signature gradient. "-down" variant ends on night so the footer joins seamlessly. */
@@ -37,6 +38,24 @@
 }
 @utility bg-morpheus-down {
   background-image: linear-gradient(165deg, #6b2fd0 0%, #3d1c6d 40%, #1a0f2c 100%);
+}
+
+/* Iridescent fill from the menu icon: magenta → violet → blue → cyan.
+   The glossy version (with a soft highlight) is for small solid shapes like icon badges;
+   the flat one suits thin elements such as progress bars. */
+@utility bg-iridescent {
+  background-image:
+    radial-gradient(110% 75% at 30% 12%, rgba(255, 255, 255, 0.5), transparent 46%),
+    linear-gradient(135deg, #ff4fd8 0%, #a13cf5 30%, #4a24ff 62%, #2f7dff 84%, #39d5ff 100%);
+}
+/* Pill version: a glossy top sheen and a slightly deeper base so white content stays readable */
+@utility bg-iridescent-pill {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 48%, rgba(26, 15, 44, 0.18) 100%),
+    linear-gradient(100deg, #e43fd0 0%, #8a33f0 32%, #3f22e8 64%, #2b6ff0 86%, #2fb8f0 100%);
+}
+@utility bg-iridescent-flat {
+  background-image: linear-gradient(90deg, #ff4fd8 0%, #a13cf5 30%, #4a24ff 62%, #2f7dff 84%, #39d5ff 100%);
 }
 
 @utility px-gutter {
@@ -166,21 +185,21 @@ h3 {
 
 /* ── Selected Works gallery ────────────────────────────────── */
 .work-card {
-  width: min(84vw, 26rem);
+  width: min(86vw, 30rem);
 }
 .work-card__media {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
 }
 
 @media (min-width: 768px) {
   .work-card {
-    width: min(70vw, 34rem);
+    width: min(78vw, 42rem);
   }
 }
 
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
   .work-card {
-    width: calc(var(--media-h) * 1.38);
+    width: calc(var(--media-h) * 1.6);
   }
   .work-card__media {
     aspect-ratio: auto;
@@ -193,6 +212,76 @@ h3 {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Capabilities card stack (OverlappingVideoSection) ───── */
+.reel {
+  --reel-w: min(80vw, 22rem, calc(52svh * 0.8));
+  --reel-r: clamp(22px, 3vw, 40px);
+  /* Copy-to-stack spacing, measured from the fanned back cards (about 16% wider than the
+     front card), plus breathing room. */
+  --reel-gap: calc(var(--reel-w) * 0.16 + clamp(1.25rem, 3vw, 3.5rem));
+}
+@media (min-width: 768px) {
+  .reel {
+    --reel-w: min(36vw, calc(64svh * 0.8));
+  }
+}
+@media (min-width: 1024px) {
+  .reel {
+    --reel-w: min(36vw, calc(min(76svh, 48rem) * 0.8));
+  }
+}
+
+/* Once the row has formed: a gentle lift, and the arrow beside the title nudges towards its corner */
+.reel-face,
+.reel-arrow {
+  transition: transform 0.7s var(--ease-out-expo);
+}
+@media (hover: hover) {
+  .reel[data-unfolded] .reel-face:hover {
+    transform: translateY(-6px) scale(1.015);
+  }
+  .reel[data-unfolded] .reel-face:hover .reel-arrow {
+    transform: translate(12%, -12%);
+  }
+}
+
+/* Reduced motion: no stack choreography, just the three finished cards (videos paused) */
+@media (prefers-reduced-motion: reduce) {
+  .reel [data-card-tint],
+  .reel [data-card-ui] {
+    opacity: 1 !important;
+  }
+}
+
+/* ── Floating navigation pill ───────────────────────────── */
+/* A highlight sweeps across every few seconds so the pill reads as a button */
+.nav-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.42) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: pill-shine 6s ease-in-out 1.4s infinite;
+}
+@keyframes pill-shine {
+  0% {
+    transform: translateX(-130%);
+  }
+  22%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-pill::after {
+    animation: none;
+  }
+  .nav-pill::after {
+    opacity: 0;
+  }
 }
 
 /* ── Fancy link underline ──────────────────────────────────── */

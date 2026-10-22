@@ -27,9 +27,7 @@ Palette taken from [morpheus-dx.com](https://www.morpheus-dx.com/) (its `--morph
 
 The header switches to white text over any element marked `data-header="dark"`.
 
-Type: **Outfit** (Google Fonts) for headings and labels, **Lufga** (self-hosted from
-`app/fonts/`) for body text. Lufga is a commercial typeface — confirm your licence covers web
-embedding before publishing.
+Type: **Outfit** (Google Fonts, SIL Open Font License) for everything: headings, labels and body text.
 
 ## Where things live
 

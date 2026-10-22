@@ -31,9 +31,10 @@ export const site = {
 
   // TODO: fill these in. Empty values render as clearly-marked placeholders.
   contact: {
-    email: "", // e.g. "hello@quntai.com"
-    linkedin: "", // e.g. "https://www.linkedin.com/in/your-handle"
-    github: "", // e.g. "https://github.com/your-handle"
+    email: "maloiyjeffrey@gmail.com",
+    linkedin: "https://www.linkedin.com/in/quntaijeffrey/",
+    github: "https://github.com/Que-alt",
+    phone: "+254 727 223 917", // shown as written; the call link strips the spaces
     cv: "", // e.g. "/cv/jeffrey-quntai-cv.pdf" (file in /public/cv)
   },
 };
@@ -63,11 +64,67 @@ export const ringSkills = [
 // `{pause}` holds for a beat, then reveals the rest of the line on a new line.
 export const heroScenes: { label: string; text: string; sub?: string }[] = [
   // `{orb}` splits the opening line around the hero image: "Hello [orb] I'm Quntai."
-  { label: "Introduction", text: "Hello{orb}I'm *Quntai.*" },
-  { label: "What I do", text: "I *design experiences* that put people first." },
-  { label: "How I bring them to life", text: "And *engineer products* that bring those experiences to life." },
-  { label: "My purpose", text: "Turning *complex challenges* into simple, impactful solutions." },
-  { label: "In short", text: "They call me…{pause} *a Creative Technologist.*", sub: "Design. Engineering. Innovation." },
+  { label: "Introduction", text: "Hello.{orb}I'm *Quntai.*" },
+  { label: "What I do", text: "I design *experiences* that put people first." },
+  { label: "How I build", text: "And engineer *products* that bring those experiences to life." },
+  { label: "Why it matters", text: "Turning complex challenges into *meaningful impact.*" },
+  { label: "In short", text: "They call me{pause} a *Creative Technologist.*", sub: "Design. Engineering. Innovation." },
   // Bridge into the portfolio: the work is the proof of everything above
-  { label: "The proof", text: "But I believe the best way to explain what I do is to *show you.*" },
+  { label: "The proof", text: "But don't take my word for it.{pause}*Let me show you.*" },
 ];
+
+// Three-card section between the hero and Selected Works (components/OverlappingVideoSection.tsx).
+// Card visual, in order of preference: `youtube` (a YouTube video ID, played muted on a loop),
+// then `video` (self-hosted files), otherwise the rotating orb and skills ring from the hero.
+// Self-hosted footage: put the files in /public/video/cards and add e.g.
+//   video: { sources: [{ src: "/video/cards/ux-design.webm", type: "video/webm" },
+//                      { src: "/video/cards/ux-design.mp4", type: "video/mp4" }],
+//            poster: "/video/cards/ux-design.jpg" },
+// List WebM before MP4 when you have both; the browser plays the first it supports.
+// Footage is screened over the card's purple, so dark backgrounds blend in best.
+// `eyebrow` + `left` / `right` are the label and statement either side of the stack while that
+// card is in front (*asterisks* mark the emphasised words). `tint` is the card's colour once the stack
+// unfolds; `href` (optional) turns a card into a link.
+export type CapabilityCard = {
+  number: string;
+  eyebrow: string;
+  left: string;
+  right: string;
+  title: string;
+  tint: string;
+  youtube?: string;
+  video?: { sources: { src: string; type: string }[]; poster?: string };
+  href?: string;
+};
+
+export const showreel: { cards: CapabilityCard[] } = {
+  cards: [
+    {
+      number: "01",
+      eyebrow: "From",
+      left: "Designing *experiences*",
+      right: "that move millions.",
+      title: "UX & Design",
+      youtube: "9SK2h9cKL4s", // Product design
+      tint: "linear-gradient(160deg, #a27be6 0%, #8558d2 55%, #7446c9 100%)", // light royal purple
+    },
+    {
+      number: "02",
+      eyebrow: "To",
+      left: "Building *products*",
+      right: "that power everyday life.",
+      title: "Engineering",
+      youtube: "dsI9gZTH_aE",
+      tint: "linear-gradient(160deg, #7a3fe0 0%, #6b2fd0 50%, #4f1fa6 100%)", // rich purple
+    },
+    {
+      number: "03",
+      eyebrow: "And",
+      left: "Turning bold ideas",
+      right: "into *what's next.*",
+      title: "AI & Innovation",
+      youtube: "olzhOKs90lk", // Netti app
+      tint: "linear-gradient(160deg, #4a1f70 0%, #33175a 55%, #1a0f2c 100%)", // deep royal purple
+    },
+  ],
+};
