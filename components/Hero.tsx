@@ -159,6 +159,10 @@ export default function Hero() {
 
             // Enforce the end state for every scene (not just the previous one), so a fast
             // or interrupted scroll can never leave the active statement hidden.
+            // One statement on screen at a time: if anything has to leave first, the incoming
+            // reveal waits until it has gone (and a fast scroll past several scenes only plays
+            // the one it lands on, since waiting reveals are cancelled when the scene changes again)
+            let leaving = false;
             scenes.forEach((_, i) => {
               if (i === next) return;
               gsap.killTweensOf(words[i]); // includes reveals that are scheduled but not yet started
@@ -169,6 +173,7 @@ export default function Hero() {
                 gsap.set(words[i], { autoAlpha: 0, overwrite: true });
                 return;
               }
+              leaving = true;
               gsap.to(
                 out,
                 reduce
@@ -201,7 +206,7 @@ export default function Hero() {
                 yPercent: 0,
                 autoAlpha: 1,
                 duration: 0.35,
-                delay: 0.15,
+                delay: leaving ? 0.3 : 0.15,
                 stagger: (i) => beat(next, i),
                 onStart: stillActive,
                 overwrite: true,
@@ -216,8 +221,8 @@ export default function Hero() {
                   autoAlpha: 1,
                   duration: 0.6,
                   ease: "power3.out",
-                  // when the orb is gliding into place, let it lead slightly
-                  delay: next === 1 && dir > 0 ? 0.35 : 0.12,
+                  // after the outgoing line (0.3s + its 0.08s stagger) has fully gone
+                  delay: leaving ? 0.42 : 0.12,
                   stagger: (i) => i * Math.min(0.06, 0.22 / reveal.length) + beat(next, i),
                   onStart: stillActive,
                   overwrite: true,
