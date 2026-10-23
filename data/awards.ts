@@ -22,7 +22,7 @@ export type Award = {
 export const awards: Award[] = [
   {
     figure: "Grand Prix",
-    titles: ["Gold"],
+    titles: [],
     by: ["Pitcher Awards"],
     featured: "gold",
     trophy: { src: "/awards/pitcher-trophy.png", width: 169, height: 305 },
