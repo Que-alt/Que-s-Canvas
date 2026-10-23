@@ -85,8 +85,8 @@ export const heroScenes: {
     beat: 1.8,
     strike: { word: "Que.", at: 0.4 },
   },
-  // Bridge into the portfolio: the work is the proof of everything above
-  { label: "The proof", text: "But don't take my word for it.{orb}{pause}*Let me show you.*" },
+  // Bridge into the portfolio: the work that follows is the story
+  { label: "My journey", text: "And this is{orb}*my story.*" },
 ];
 
 // Three-card section between the hero and Selected Works (components/OverlappingVideoSection.tsx).
