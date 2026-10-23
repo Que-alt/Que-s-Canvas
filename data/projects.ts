@@ -11,22 +11,29 @@
 
 export type ProjectImage = { src: string; alt: string; caption?: string };
 
+// The case study reads as five chapters:
+//  01 Overview — What did we set out to create?           → overview
+//  02 The Business Problem — Why did it matter?           → challenge
+//  03 The Approach & Solution — How did we solve it?      → approach, process, solution, stack
+//  04 The Outcome — Let the work speak for itself.        → gallery (screens & prototypes), outcomes
+//  05 My Role — What was my contribution?                 → role
 export type CaseStudy = {
   overview?: string;
   challenge?: string;
-  role?: string;
   approach?: { design?: string; engineering?: string };
   process?: { title: string; body: string }[];
   solution?: string;
-  gallery?: ProjectImage[];
   stack?: string[];
+  gallery?: ProjectImage[];
   outcomes?: string[];
+  role?: string;
 };
 
 export type Project = {
   slug: string; // URL: /work/<slug>
   title: string;
   client?: string;
+  agency?: string; // the employer I delivered the work through, shown as "Agency" on the case study
   categories: string[];
   description: string;
   role?: string; // role shown on the case-study page, e.g. "Lead Product Designer"

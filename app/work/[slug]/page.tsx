@@ -44,7 +44,7 @@ export default async function CaseStudyPage({ params }: Props) {
 
   const meta = [
     { label: "Client", value: project.client },
-    { label: "Role", value: project.role },
+    { label: "Agency", value: project.agency }, // the employer the work was delivered through
     { label: "Year", value: project.year },
     { label: "Discipline", value: project.categories.join(", ") },
   ];
@@ -92,21 +92,17 @@ export default async function CaseStudyPage({ params }: Props) {
         </div>
       </Reveal>
 
-      {/* Chapters */}
+      {/* Chapters: what we set out to do → why it mattered → how → the result → my part */}
       <div className="mx-auto mt-16 max-w-[1680px] px-gutter md:mt-24">
-        <CaseSection index={1} title="Overview">
+        <CaseSection index={1} title="Overview" question="What did we set out to create?">
           {cs.overview ? <p className={prose}>{cs.overview}</p> : <Placeholder field="overview" />}
         </CaseSection>
 
-        <CaseSection index={2} title="Business challenge">
+        <CaseSection index={2} title="The Business Problem" question="Why did it matter?">
           {cs.challenge ? <p className={prose}>{cs.challenge}</p> : <Placeholder field="challenge" />}
         </CaseSection>
 
-        <CaseSection index={3} title="My role">
-          {cs.role ? <p className={prose}>{cs.role}</p> : <Placeholder field="role" />}
-        </CaseSection>
-
-        <CaseSection index={4} title="Design & engineering approach">
+        <CaseSection index={3} title="The Approach & Solution" question="How did we solve it?">
           <div className="grid gap-5 md:grid-cols-2">
             {(["design", "engineering"] as const).map((k) => (
               <div key={k} className="rounded-[24px] border border-line p-6 md:p-8">
@@ -121,33 +117,52 @@ export default async function CaseStudyPage({ params }: Props) {
               </div>
             ))}
           </div>
-        </CaseSection>
 
-        <CaseSection index={5} title="Process & solution">
-          {cs.process?.length ? (
-            <ol className="grid gap-px overflow-hidden rounded-[24px] border border-line bg-line sm:grid-cols-2">
-              {cs.process.map((step, i) => (
-                <li key={step.title} className="bg-white p-6 md:p-8">
-                  <p className="font-label text-xs text-ink-2">{String(i + 1).padStart(2, "0")}</p>
-                  <h3 className="mt-3 text-xl font-medium tracking-[-0.02em]">{step.title}</h3>
-                  <p className="mt-2 leading-relaxed text-ink-2">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <Placeholder field="process" />
-          )}
+          <div className="mt-8">
+            {cs.process?.length ? (
+              <ol className="grid gap-px overflow-hidden rounded-[24px] border border-line bg-line sm:grid-cols-2">
+                {cs.process.map((step, i) => (
+                  <li key={step.title} className="bg-white p-6 md:p-8">
+                    <p className="font-label text-xs text-ink-2">{String(i + 1).padStart(2, "0")}</p>
+                    <h3 className="mt-3 text-xl font-medium tracking-[-0.02em]">{step.title}</h3>
+                    <p className="mt-2 leading-relaxed text-ink-2">{step.body}</p>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <Placeholder field="process" />
+            )}
+          </div>
+
           <div className="mt-8">
             {cs.solution ? <p className={prose}>{cs.solution}</p> : <Placeholder field="solution" />}
           </div>
+
+          <div className="mt-8">
+            <p className="font-label text-[11px] uppercase tracking-[0.16em] text-ink-2">Technology stack</p>
+            <div className="mt-4">
+              {cs.stack?.length ? (
+                <ul className="flex flex-wrap gap-2.5">
+                  {cs.stack.map((t) => (
+                    <li key={t} className="rounded-full border border-line px-4 py-2 text-sm">
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Placeholder field="stack" />
+              )}
+            </div>
+          </div>
         </CaseSection>
 
-        <CaseSection index={6} title="Screenshots & prototypes">
+        {/* The work itself leads this chapter: screens and prototypes, then the results */}
+        <CaseSection index={4} title="The Outcome" question="Let the work speak for itself." tone="highlight">
           <div className="grid gap-5 sm:grid-cols-2">
             {cs.gallery?.length
               ? cs.gallery.map((img, i) => (
                   <figure key={img.src} className={i % 3 === 0 ? "sm:col-span-2" : undefined}>
-                    <div className="relative aspect-[16/10] overflow-hidden rounded-[24px] bg-paper-2">
+                    <div className="relative aspect-[16/10] overflow-hidden rounded-[24px] bg-white">
                       <Image
                         src={img.src}
                         alt={img.alt}
@@ -162,7 +177,7 @@ export default async function CaseStudyPage({ params }: Props) {
               : [0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className={`grid aspect-[16/10] place-items-center rounded-[24px] border border-dashed border-ink/20 bg-paper-2 ${
+                    className={`grid aspect-[16/10] place-items-center rounded-[24px] border border-dashed border-ink/20 bg-white/60 ${
                       i === 0 ? "sm:col-span-2" : ""
                     }`}
                   >
@@ -172,35 +187,25 @@ export default async function CaseStudyPage({ params }: Props) {
                   </div>
                 ))}
           </div>
+
+          <div className="mt-10">
+            {cs.outcomes?.length ? (
+              <ul className="max-w-[62ch]">
+                {cs.outcomes.map((o) => (
+                  <li key={o} className="flex gap-4 border-b border-ink/10 py-4 text-lg">
+                    <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-electric" aria-hidden />
+                    {o}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Placeholder field="outcomes" />
+            )}
+          </div>
         </CaseSection>
 
-        <CaseSection index={7} title="Technology stack">
-          {cs.stack?.length ? (
-            <ul className="flex flex-wrap gap-2.5">
-              {cs.stack.map((t) => (
-                <li key={t} className="rounded-full border border-line px-4 py-2 text-sm">
-                  {t}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Placeholder field="stack" />
-          )}
-        </CaseSection>
-
-        <CaseSection index={8} title="Outcomes & impact">
-          {cs.outcomes?.length ? (
-            <ul className="max-w-[62ch]">
-              {cs.outcomes.map((o) => (
-                <li key={o} className="flex gap-4 border-b border-line py-4 text-lg">
-                  <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-electric" aria-hidden />
-                  {o}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Placeholder field="outcomes" />
-          )}
+        <CaseSection index={5} title="My Role" question="What was my contribution?">
+          {cs.role ? <p className={prose}>{cs.role}</p> : <Placeholder field="role" />}
         </CaseSection>
       </div>
 

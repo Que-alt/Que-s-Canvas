@@ -1,19 +1,34 @@
 import type { ReactNode } from "react";
 import Reveal from "../Reveal";
 
-type Props = { index: number; title: string; children: ReactNode };
+type Props = {
+  index: number;
+  title: string;
+  /** The question the chapter answers, shown under its title */
+  question: string;
+  /** "highlight" sets the chapter on a soft violet panel (used for The Outcome) */
+  tone?: "default" | "highlight";
+  children: ReactNode;
+};
 
-/** A numbered case-study chapter: sticky label on the left, content on the right. */
-export default function CaseSection({ index, title, children }: Props) {
+/** A numbered case-study chapter: sticky number, title and question on the left, content on the right. */
+export default function CaseSection({ index, title, question, tone = "default", children }: Props) {
   const id = title.toLowerCase().replace(/[^a-z]+/g, "-");
+  const highlight = tone === "highlight";
   return (
-    <section aria-labelledby={id} className="grid gap-6 border-t border-line py-16 md:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
+    <section
+      aria-labelledby={id}
+      className={`grid gap-6 py-16 md:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16 ${
+        highlight ? "my-4 rounded-[28px] bg-[#efe8fb] px-6 md:my-8 md:rounded-[40px] md:px-12" : "border-t border-line"
+      }`}
+    >
       <div>
         <div className="lg:sticky lg:top-32">
-          <p className="font-label text-xs text-ink-2">{String(index).padStart(2, "0")}</p>
+          <p className={`font-label text-xs ${highlight ? "text-electric" : "text-ink-2"}`}>{String(index).padStart(2, "0")}</p>
           <h2 id={id} className="mt-2 text-2xl font-medium tracking-[-0.03em] md:text-3xl">
             {title}
           </h2>
+          <p className="mt-2 text-ink-2 md:text-lg">{question}</p>
         </div>
       </div>
       <Reveal>{children}</Reveal>
