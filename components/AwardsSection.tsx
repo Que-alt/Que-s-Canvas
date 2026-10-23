@@ -104,7 +104,8 @@ function FeaturedCard({ award }: { award: Award }) {
       )}
       <div className="relative mt-auto max-w-[58%] pt-12">
         <p className="font-display text-[clamp(2.75rem,5vw,5rem)] font-medium leading-[0.95] tracking-[-0.045em]">{award.figure}</p>
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+        {/* fixed-height row, so every card's title and line underneath sit at the same height */}
+        <div className="mt-5 flex min-h-7 flex-wrap items-center gap-x-4 gap-y-2">
           {award.titles.length > 0 && (
             <>
               <p className="text-lg text-white/85">{award.titles.join(" · ")}</p>

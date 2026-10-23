@@ -60,7 +60,7 @@ export default function ContactSection() {
 
         {/* Sign-off. The floating pill sits between these two on wide screens. */}
         <footer className="mt-24 flex items-center justify-between gap-6 border-t border-white/10 pt-6 text-sm text-white/50 md:mt-32">
-          <p>© {new Date().getFullYear()} {site.name}</p>
+          <p>© {new Date().getFullYear()} Que</p>
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
