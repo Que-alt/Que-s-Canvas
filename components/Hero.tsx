@@ -41,7 +41,8 @@ export default function Hero() {
         (ctx) => {
           const { desktop, reduce } = ctx.conditions as { desktop: boolean; reduce: boolean };
           const scenes = q<HTMLElement>("[data-scene]");
-          const words = scenes.map((s) => s.querySelectorAll<HTMLElement>("[data-word]"));
+          // Story scenes hold a phone layout and a desktop layout; only the one on screen animates
+          const words = scenes.map((s) => [...s.querySelectorAll<HTMLElement>("[data-word]")].filter((w) => w.offsetParent !== null));
           const dock = q<HTMLElement>("[data-dock]")[0];
           const portrait = q<HTMLElement>("[data-portrait]")[0];
           const home = q<HTMLElement>("[data-dock-home]")[0];
@@ -143,7 +144,9 @@ export default function Hero() {
           // Scroll picks the scene; the change itself plays as a short timed transition,
           // so the copy is never left half-revealed and every scene gets equal scroll.
           const show = ctx.add("show", (next: number, dir: number, instant = false) => {
-            if (next >= 1 !== docked) placeOrb(next >= 1, !instant);
+            // the orb glides into its column on wider screens; on phones it stays centred throughout
+            const dock = desktop && next >= 1;
+            if (dock !== docked) placeOrb(dock, !instant);
             if (next === active) return;
             active = next;
             // Single source of truth for "which statement is showing", stored on the element so
@@ -340,37 +343,61 @@ export default function Hero() {
       <div className="mx-auto grid h-full max-w-[1680px] grid-rows-[auto_auto] content-center items-center gap-8 px-gutter pb-20 pt-24 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)] md:grid-rows-1 md:content-normal md:gap-[6vw] md:py-0">
         <Portrait />
 
+        {/* Phones: the copy layer covers the hero so each statement can wrap around the centred orb */}
         <motion.div
-          className="grid self-start md:self-center"
+          className="grid self-start max-md:absolute max-md:inset-0 max-md:self-stretch max-md:justify-self-stretch md:self-center"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
         >
-          <div data-hero-copy className="grid">
-            {story.map((scene, i) => (
-              <div
-                key={i}
-                data-scene
-                data-beat={scene.beat}
-                data-strike={scene.strike?.word}
-                data-strike-at={scene.strike?.at}
-                className="hero-scene [grid-area:1/1] self-center"
-              >
-                <AnimatedText as="p" text={`${pad(i + 2)} — ${scene.label}`} className={`mb-5 md:mb-8 ${label}`} />
-                <AnimatedText
-                  as="p"
-                  text={scene.text}
-                  className={`text-[clamp(2.3rem,5.2vw,6.25rem)] text-balance ${statement}`}
-                />
-                {scene.sub && (
-                  <AnimatedText
-                    as="p"
-                    text={scene.sub}
-                    className="mt-6 font-label text-[clamp(0.8rem,1.1vw,1rem)] uppercase tracking-[0.16em] text-ink-2 md:mt-10"
-                  />
-                )}
-              </div>
-            ))}
+          <div data-hero-copy className="grid max-md:h-full max-md:grid-rows-1">
+            {story.map((scene, i) => {
+              const sceneLabel = `${pad(i + 2)} — ${scene.label}`;
+              // `{orb}` marks where the line splits around the orb on phones; desktop reads it as a space
+              const [above, below = ""] = scene.text.split(ORB);
+              return (
+                <div
+                  key={i}
+                  data-scene
+                  data-beat={scene.beat}
+                  data-strike={scene.strike?.word}
+                  data-strike-at={scene.strike?.at}
+                  className="hero-scene [grid-area:1/1] self-center max-md:h-full max-md:self-stretch"
+                >
+                  {/* Phones: label and first half above the orb, the rest below, as in the opening */}
+                  <div className="grid h-full grid-rows-[1fr_var(--orb-d)_1fr] gap-5 px-gutter text-center md:hidden">
+                    <div className="self-end">
+                      <AnimatedText as="p" text={sceneLabel} className={`mb-4 ${label}`} />
+                      <AnimatedText as="p" text={above.trim()} className={`text-[clamp(2rem,9vw,2.6rem)] text-balance ${statement}`} />
+                    </div>
+                    <span aria-hidden />
+                    <AnimatedText
+                      as="p"
+                      text={below.trim()}
+                      breakOnPause={false}
+                      className={`self-start text-[clamp(2rem,9vw,2.6rem)] text-balance ${statement}`}
+                    />
+                  </div>
+
+                  {/* Tablet and desktop: label and statement beside the docked orb */}
+                  <div className="max-md:hidden">
+                    <AnimatedText as="p" text={sceneLabel} className={`mb-8 ${label}`} />
+                    <AnimatedText
+                      as="p"
+                      text={scene.text.replace(ORB, " ")}
+                      className={`text-[clamp(2.3rem,5.2vw,6.25rem)] text-balance ${statement}`}
+                    />
+                    {scene.sub && (
+                      <AnimatedText
+                        as="p"
+                        text={scene.sub}
+                        className="mt-10 font-label text-[clamp(0.8rem,1.1vw,1rem)] uppercase tracking-[0.16em] text-ink-2"
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
       </div>

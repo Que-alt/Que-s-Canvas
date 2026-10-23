@@ -68,20 +68,22 @@ type Props = {
   mode?: "static" | "inView";
   delay?: number;
   id?: string;
+  /** Start a new line at a {pause} (default). Off when the line is already split elsewhere. */
+  breakOnPause?: boolean;
 };
 
 /**
  * Accessible split-text: screen readers get the full sentence once,
  * the visual layer is split into masked words that can be animated.
  */
-export default function AnimatedText({ text, as: Tag = "p", className, mode = "static", delay = 0, id }: Props) {
+export default function AnimatedText({ text, as: Tag = "p", className, mode = "static", delay = 0, id, breakOnPause = true }: Props) {
   const words = parseWords(text);
 
   const renderWord = (w: Word, i: number) => {
     const cls = `word${w.keyword ? " kw" : ""}`;
     return (
       <Fragment key={i}>
-        {w.pause && <br />}
+        {w.pause && breakOnPause && <br />}
         <span className="word-mask">
           {mode === "inView" ? (
             <motion.span className={cls} variants={wordVariants} custom={i + delay * 20}>

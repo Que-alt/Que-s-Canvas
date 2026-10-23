@@ -63,6 +63,7 @@ export const ringSkills = [
 // Wrap words in *asterisks* to emphasise them (bold + accent underline).
 // `label` is the small numbered eyebrow shown above each statement.
 // `{pause}` holds for a beat, then reveals the rest of the line on a new line.
+// `{orb}` is where a line splits around the orb on phones (above / below); elsewhere it's a space.
 // `beat` is a scene's share of scroll (default 1). `strike` crosses out one word partway
 // through the scene (`at` = fraction of its scroll), then reveals the words after {pause}.
 export const heroScenes: {
@@ -74,18 +75,18 @@ export const heroScenes: {
 }[] = [
   // `{orb}` splits the opening line around the hero image: "Hello, [orb] I'm Quntai."
   { label: "Introduction", text: "Hello,{orb}I'm *Quntai.*" },
-  { label: "What I do", text: "I design digital *experiences.*" },
-  { label: "What I do (beyond design)", text: "And engineer *products* that bring those experiences to life." },
-  { label: "Why I do it", text: "Because I believe technology should make *people's lives better.*" },
+  { label: "What I do", text: "I design digital{orb}*experiences.*" },
+  { label: "What I do (beyond design)", text: "And engineer *products*{orb}that bring those experiences to life." },
+  { label: "Why I do it", text: "Because I believe technology{orb}should make *people's lives better.*" },
   {
     label: "The reveal",
     // "Que." is struck through, then the real answer appears beneath it
-    text: "They call me *Que.*{pause}a *Creative Technologist.*",
+    text: "They call me *Que.*{orb}{pause}a *Creative Technologist.*",
     beat: 1.8,
     strike: { word: "Que.", at: 0.4 },
   },
   // Bridge into the portfolio: the work is the proof of everything above
-  { label: "The proof", text: "But don't take my word for it.{pause}*Let me show you.*" },
+  { label: "The proof", text: "But don't take my word for it.{orb}{pause}*Let me show you.*" },
 ];
 
 // Three-card section between the hero and Selected Works (components/OverlappingVideoSection.tsx).
