@@ -246,9 +246,9 @@ h3 {
 
 /* ── Capabilities card stack (OverlappingVideoSection) ───── */
 .reel {
-  /* phones: the stack shares the screen with a statement above and below, plus the header,
-     so its height is whatever is left after ~19rem of copy and chrome */
-  --reel-w: min(80vw, 22rem, calc(52svh * 0.8), calc((100svh - 19rem) * 0.8));
+  /* phones: the stack shares the screen with a statement above and below (with clearance for
+     the fanned cards behind), plus the header, so its height is what's left after ~24rem */
+  --reel-w: min(80vw, 22rem, calc(52svh * 0.8), calc((100svh - 24rem) * 0.8));
   --reel-r: clamp(22px, 3vw, 40px);
   /* Copy-to-stack spacing, measured from the fanned back cards (about 16% wider than the
      front card), plus breathing room. */

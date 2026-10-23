@@ -350,7 +350,7 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
   }, []);
 
   const statement =
-    "font-display font-normal leading-[1] tracking-[-0.04em] text-[clamp(1.75rem,9vw,3rem)] md:text-[clamp(1.4rem,3.2vw,4.25rem)]";
+    "font-display font-normal leading-[1] tracking-[-0.04em] text-[clamp(1.75rem,8vw,3rem)] md:text-[clamp(1.4rem,3.2vw,4.25rem)]";
 
   return (
     <section
@@ -366,14 +366,14 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
         {/* Upper-left statement: offset upwards so the line reads diagonally across the stack */}
         <div
           data-reel-col="left"
-          className="relative z-20 self-end motion-reduce:hidden md:mb-[18svh] md:self-center md:justify-self-end md:pr-(--reel-gap) motion-reduce:md:m-0 motion-reduce:md:justify-self-center motion-reduce:md:p-0"
+          className="relative z-20 mb-[calc(var(--reel-w)*0.08)] self-end motion-reduce:hidden md:mb-[18svh] md:self-center md:justify-self-end md:pr-(--reel-gap) motion-reduce:md:m-0 motion-reduce:md:justify-self-center motion-reduce:md:p-0"
         >
           {/* One statement per card, stacked in the same spot; the front card's is the one showing */}
           <div data-reel-text="left" className="grid">
             {cards.map((c, i) => (
               <div key={c.number} data-statement={i} className="flex flex-col items-center [grid-area:1/1] md:items-end">
                 {/* Small label (FROM / TO / AND): its words swap with the statement's */}
-                <AnimatedText as="p" text={c.eyebrow} className="mb-4 font-label text-[clamp(0.7rem,0.9vw,0.85rem)] uppercase tracking-[0.16em] text-ink-2 md:mb-6" />
+                <AnimatedText as="p" text={c.eyebrow} className="mb-2 font-label text-[clamp(0.7rem,0.9vw,0.85rem)] uppercase tracking-[0.16em] text-ink-2 md:mb-6" />
                 <AnimatedText as="p" text={c.left} className={`max-w-[12ch] text-center md:text-right ${statement}`} />
               </div>
             ))}
@@ -394,7 +394,7 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
 
         <div
           data-reel-col="right"
-          className="relative z-20 self-start motion-reduce:hidden md:mt-[18svh] md:self-center md:justify-self-start md:pl-(--reel-gap) motion-reduce:md:m-0 motion-reduce:md:justify-self-center motion-reduce:md:p-0"
+          className="relative z-20 mt-[calc(var(--reel-w)*0.13)] self-start motion-reduce:hidden md:mt-[18svh] md:self-center md:justify-self-start md:pl-(--reel-gap) motion-reduce:md:m-0 motion-reduce:md:justify-self-center motion-reduce:md:p-0"
         >
           {/* One statement per card, stacked in the same spot; the front card's is the one showing */}
           <div data-reel-text="right" className="grid">
