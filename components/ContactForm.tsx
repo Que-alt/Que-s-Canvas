@@ -29,6 +29,7 @@ export default function ContactForm({ open, onClose }: { open: boolean; onClose:
     if (open && !d.open) {
       d.showModal();
       document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
     } else if (!open && d.open) {
       d.close();
     }
@@ -36,6 +37,7 @@ export default function ContactForm({ open, onClose }: { open: boolean; onClose:
 
   const handleClose = () => {
     document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
     if (status === "sent" || status === "error") setStatus("idle");
     onClose();
   };
@@ -76,7 +78,7 @@ export default function ContactForm({ open, onClose }: { open: boolean; onClose:
   };
 
   // Fields are plain rows on the panel: label above, a hairline below that brightens on focus
-  const row = "block border-b border-white/15 pb-3 pt-5 transition-colors duration-300 focus-within:border-white/60";
+  const row = "block border-b border-white/15 pb-2.5 pt-4 [@media(max-height:640px)]:pt-3 md:pb-3 md:pt-5 transition-colors duration-300 focus-within:border-white/60";
   const label = "block text-sm text-white/50";
   const input = "contact-field mt-1.5 w-full bg-transparent text-lg text-white placeholder:text-white/25 outline-none";
 
@@ -86,9 +88,11 @@ export default function ContactForm({ open, onClose }: { open: boolean; onClose:
       onClose={handleClose}
       onClick={(e) => e.target === e.currentTarget && dialog.current?.close()} // click on the backdrop
       aria-labelledby="contact-form-title"
-      className="contact-dialog m-auto w-[min(100%-2rem,34rem)] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-3xl bg-night p-0 text-white ring-1 ring-white/10 backdrop:bg-night/70 backdrop:backdrop-blur-sm"
+      className="contact-dialog m-auto w-[min(100%-1.5rem,34rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-3xl bg-night p-0 text-white ring-1 ring-white/10 backdrop:bg-night/70 backdrop:backdrop-blur-sm"
     >
-      <div className="relative px-7 pb-7 pt-8 md:px-10 md:pb-9 md:pt-10">
+      {/* Opening focus lands on the panel itself (not the close button, which would draw a focus
+          ring, nor a field, which would pop up the keyboard on phones). Tab moves on as usual. */}
+      <div tabIndex={-1} autoFocus className="relative px-6 pb-6 pt-7 outline-none md:px-10 md:pb-9 md:pt-10">
         <button
           type="button"
           onClick={() => dialog.current?.close()}
@@ -111,9 +115,10 @@ export default function ContactForm({ open, onClose }: { open: boolean; onClose:
             <h2 id="contact-form-title" className="pr-12 font-display text-[clamp(1.6rem,3.4vw,2.1rem)] font-medium leading-[1.1] tracking-[-0.03em]">
               Let&apos;s create something.
             </h2>
-            <p className="mt-2 text-white/60">Tell me a little about it and I&apos;ll get back to you.</p>
+            {/* short screens (e.g. iPhone SE) drop the subtitle and the email line so the form still fits */}
+            <p className="mt-2 text-white/60 [@media(max-height:640px)]:hidden">Tell me a little about it and I&apos;ll get back to you.</p>
 
-            <form onSubmit={submit} className="mt-4">
+            <form onSubmit={submit} className="mt-2 md:mt-4">
               <input type="checkbox" name="botcheck" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
               <label className={row}>
                 <span className={label}>Name</span>
@@ -137,14 +142,14 @@ export default function ContactForm({ open, onClose }: { open: boolean; onClose:
               </div>
               <label className={row}>
                 <span className={label}>Message</span>
-                <textarea name="message" required rows={3} className={`${input} resize-none`} />
+                <textarea name="message" required rows={2} className={`${input} resize-none md:h-[4.6em]`} />
               </label>
 
               {status === "error" && (
                 <p role="alert" className="mt-4 text-sm text-[#ffb4b4]">{error}</p>
               )}
 
-              <div className="mt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-5">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-4 md:mt-8">
                 <EmailFallback />
                 <button
                   type="submit"
@@ -176,7 +181,7 @@ function EmailFallback() {
     } catch {}
   };
   return (
-    <p className="flex items-center gap-1 text-sm text-white/50">
+    <p className="flex items-center gap-1 text-sm text-white/50 [@media(max-height:640px)]:hidden">
       Or email{" "}
       <a href={`mailto:${email}`} className="text-white/80 transition-colors hover:text-white">{email}</a>
       <button
