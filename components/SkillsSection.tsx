@@ -62,7 +62,7 @@ function DisciplineColumn({ discipline: d }: { discipline: Discipline }) {
         <span className="grid size-10 place-items-center rounded-full bg-brand bg-iridescent text-white">
           <Icon className="size-4.5" aria-hidden />
         </span>
-        <span className="font-label text-xs font-medium uppercase tracking-[0.18em]">{d.eyebrow}</span>
+        <span className="font-label text-xs font-medium uppercase tracking-[0.16em]">{d.eyebrow}</span>
       </div>
 
       <h3

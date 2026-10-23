@@ -44,6 +44,7 @@ export const navigation = [
   { label: "Selected Works", id: "work" },
   { label: "Skills", id: "skills" },
   { label: "Brands", id: "brands" },
+  { label: "Awards", id: "awards" },
   { label: "Contact", id: "contact" },
 ];
 
@@ -62,13 +63,27 @@ export const ringSkills = [
 // Wrap words in *asterisks* to emphasise them (bold + accent underline).
 // `label` is the small numbered eyebrow shown above each statement.
 // `{pause}` holds for a beat, then reveals the rest of the line on a new line.
-export const heroScenes: { label: string; text: string; sub?: string }[] = [
-  // `{orb}` splits the opening line around the hero image: "Hello [orb] I'm Quntai."
-  { label: "Introduction", text: "Hello.{orb}I'm *Quntai.*" },
-  { label: "What I do", text: "I design *experiences* that put people first." },
-  { label: "How I build", text: "And engineer *products* that bring those experiences to life." },
-  { label: "Why it matters", text: "Turning complex challenges into *meaningful impact.*" },
-  { label: "In short", text: "They call me{pause} a *Creative Technologist.*", sub: "Design. Engineering. Innovation." },
+// `beat` is a scene's share of scroll (default 1). `strike` crosses out one word partway
+// through the scene (`at` = fraction of its scroll), then reveals the words after {pause}.
+export const heroScenes: {
+  label: string;
+  text: string;
+  sub?: string;
+  beat?: number;
+  strike?: { word: string; at: number };
+}[] = [
+  // `{orb}` splits the opening line around the hero image: "Hello, [orb] I'm Quntai."
+  { label: "Introduction", text: "Hello,{orb}I'm *Quntai.*" },
+  { label: "What I do", text: "I design digital *experiences.*" },
+  { label: "What I do (beyond design)", text: "And engineer *products* that bring those experiences to life." },
+  { label: "Why I do it", text: "Because I believe technology should make *people's lives better.*" },
+  {
+    label: "The reveal",
+    // "Que." is struck through, then the real answer appears beneath it
+    text: "They call me *Que.*{pause}a *Creative Technologist.*",
+    beat: 1.8,
+    strike: { word: "Que.", at: 0.4 },
+  },
   // Bridge into the portfolio: the work is the proof of everything above
   { label: "The proof", text: "But don't take my word for it.{pause}*Let me show you.*" },
 ];
@@ -97,7 +112,7 @@ export type CapabilityCard = {
   href?: string;
 };
 
-export const showreel: { cards: CapabilityCard[] } = {
+export const showreel: { cards: CapabilityCard[]; outro?: string } = {
   cards: [
     {
       number: "01",
@@ -127,4 +142,6 @@ export const showreel: { cards: CapabilityCard[] } = {
       tint: "linear-gradient(160deg, #4a1f70 0%, #33175a 55%, #1a0f2c 100%)", // deep royal purple
     },
   ],
+  // Closing line above the unfolded row of cards; leads into Selected Works
+  outro: "I've turned my ideas into *real-world impact.*",
 };

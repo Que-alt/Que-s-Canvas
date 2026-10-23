@@ -25,7 +25,7 @@ export default function ProjectCard({ project, index }: Props) {
             </div>
           </div>
 
-          <span className="absolute right-5 top-5 grid size-12 translate-y-2 scale-90 place-items-center rounded-full bg-brand bg-iridescent text-white opacity-0 transition duration-500 ease-out-expo group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+          <span className="absolute right-5 top-5 grid size-12 translate-y-2 scale-90 place-items-center rounded-full bg-brand bg-iridescent text-white opacity-0 transition duration-500 ease-out-expo group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100">
             <ArrowUpRight className="size-5" aria-hidden />
           </span>
         </div>

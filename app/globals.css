@@ -130,9 +130,10 @@ h3 {
   margin-bottom: -0.14em;
 }
 
+/* No blanket will-change: hundreds of words would each get their own compositor layer.
+   GSAP and Motion promote elements only while they animate. */
 .word {
   display: inline-block;
-  will-change: transform;
 }
 
 /* Emphasised words in headings: bold + colour, no underline */
@@ -158,6 +159,35 @@ h3 {
 }
 @media (prefers-reduced-motion: reduce) {
   .ring-spin {
+    animation: none;
+  }
+}
+
+/* Contact form fields: the row's hairline shows focus, so no outline ring; and keep
+   browser autofill from repainting the fields light blue. */
+.contact-field:focus-visible {
+  outline: none;
+}
+.contact-field:-webkit-autofill,
+.contact-field:-webkit-autofill:hover,
+.contact-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-night) inset;
+  caret-color: #fff;
+  transition: background-color 9999s;
+}
+
+/* Typed scroll hint: the cursor blinks once the line has been typed */
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.caret-blink {
+  animation: caret-blink 1.05s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret-blink {
     animation: none;
   }
 }
@@ -216,7 +246,9 @@ h3 {
 
 /* ── Capabilities card stack (OverlappingVideoSection) ───── */
 .reel {
-  --reel-w: min(80vw, 22rem, calc(52svh * 0.8));
+  /* phones: the stack shares the screen with a statement above and below, plus the header,
+     so its height is whatever is left after ~19rem of copy and chrome */
+  --reel-w: min(80vw, 22rem, calc(52svh * 0.8), calc((100svh - 19rem) * 0.8));
   --reel-r: clamp(22px, 3vw, 40px);
   /* Copy-to-stack spacing, measured from the fanned back cards (about 16% wider than the
      front card), plus breathing room. */

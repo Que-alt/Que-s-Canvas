@@ -30,7 +30,7 @@ export default function BrandCard({ brand }: { brand: Brand }) {
           <span className="block font-display text-[clamp(1.25rem,1.8vw,1.75rem)] font-semibold tracking-[-0.03em] text-ink/75 transition-colors group-hover:text-ink">
             {brand.name}
           </span>
-          <span className="mt-2 inline-block rounded-full border border-dashed border-ink/20 px-2.5 py-0.5 font-label text-[10px] uppercase tracking-[0.14em] text-ink-2">
+          <span className="mt-2 inline-block rounded-full border border-dashed border-ink/20 px-2.5 py-0.5 font-label text-[10px] uppercase tracking-[0.16em] text-ink-2">
             Logo placeholder
           </span>
         </div>

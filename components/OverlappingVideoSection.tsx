@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import type { CapabilityCard } from "@/data/site";
@@ -28,6 +28,8 @@ const defaultAnimation: ReelAnimation = { scrub: 0.6, textShift: 18, rise: 16, s
 
 type Props = {
   cards: CapabilityCard[];
+  /** Closing statement that appears above the row once the cards have unfolded (desktop/tablet). */
+  outro?: string;
   animation?: Partial<ReelAnimation>;
   id?: string;
 };
@@ -52,9 +54,13 @@ const BEATS = { dwell: 0.15, swap: 0.6, unfold: 0.8, hold: 0.4 };
  *     and the row holds briefly before the pin releases into Selected Works.
  * One scrubbed timeline drives every card, so the sequence reverses exactly when scrolling up.
  */
-export default function OverlappingVideoSection({ cards, animation, id = "capabilities" }: Props) {
+export default function OverlappingVideoSection({ cards, outro, animation, id = "capabilities" }: Props) {
   const root = useRef<HTMLElement>(null);
   const a = { ...defaultAnimation, ...animation };
+  // Which card is in front (-1 once the row has formed): only that card's video plays
+  // while the stack moves, since every playing embed costs frames during the transforms
+  const [front, setFront] = useState(0);
+  const frontRef = useRef(0);
 
   useGSAP(
     () => {
@@ -101,12 +107,20 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
             const content = Math.min(vw, 1680) - 2 * pad;
             if (desktop) {
               const gap = gsap.utils.clamp(12, 20, vw * 0.011);
-              const w = Math.min((content - 2 * gap) / 3, (h - 2 * Math.max(88, h * 0.12)) * (W / H));
-              return { scale: w / W, x: [-(w + gap), 0, w + gap], y: [0, 0, 0] };
+              // Space above the row: the header, then the closing statement with room to breathe
+              const outroH = q<HTMLElement>("[data-reel-outro]")[0]?.offsetHeight ?? 0;
+              const top = Math.max(80, h * 0.1) + (outroH ? outroH + Math.max(24, h * 0.04) : 0);
+              const bottom = Math.max(48, h * 0.08);
+              const avail = h - top - bottom;
+              const w = Math.min((content - 2 * gap) / 3, avail * (W / H));
+              const rowH = (w * H) / W;
+              const rowTop = top + (avail - rowH) / 2;
+              const dy = rowTop + rowH / 2 - h / 2; // the stage sits at the centre of the pinned screen
+              return { scale: w / W, x: [-(w + gap), 0, w + gap], y: [dy, dy, dy], rowTop, outroGap: Math.max(24, h * 0.04) };
             }
             const gap = 12;
             const ch = Math.min((h - 2 * 72 - 2 * gap) / 3, (content * 0.62 * H) / W);
-            return { scale: ch / H, x: [0, 0, 0], y: [-(ch + gap), 0, ch + gap] };
+            return { scale: ch / H, x: [0, 0, 0], y: [-(ch + gap), 0, ch + gap], rowTop: 0, outroGap: 0 };
           };
           const final = (i: number) => ({
             xPercent: 0,
@@ -142,8 +156,32 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
               end: () => `+=${(ENTER + pinned) * vh()}`,
               scrub: a.scrub,
               invalidateOnRefresh: true,
-              // hover effects only once the row has formed
-              onUpdate: (self) => el.toggleAttribute("data-unfolded", self.progress * tl.duration() > unfoldAt + B.unfold * 0.9),
+              // When scrolling stops mid-move, ease to the nearest resting state (each card in
+              // front, or the finished row) so the stack is never left half-way through a swap.
+              // Only inside the pinned range; the entrance scrolls freely.
+              snap: {
+                snapTo: (v: number) => {
+                  const T = ENTER + pinned;
+                  if (v * T < ENTER) return v;
+                  const rests = [ENTER, ENTER + B.dwell, ENTER + B.dwell + B.swap, unfoldAt, unfoldAt + B.unfold, T];
+                  const t = v * T;
+                  // inside a resting stretch (the first dwell, or the held row) nothing moves: stay put
+                  if (t <= ENTER + B.dwell || t >= unfoldAt + B.unfold) return v;
+                  return rests.reduce((a, b) => (Math.abs(b - t) < Math.abs(a - t) ? b : a)) / T;
+                },
+                duration: { min: 0.25, max: 0.7 },
+                delay: 0.12,
+                ease: "power2.inOut",
+                inertia: false, // snap from where the scroll stopped, not where momentum would carry it
+              },
+              onUpdate: (self) => {
+                const t = self.progress * tl.duration();
+                // hover effects only once the row has formed
+                el.toggleAttribute("data-unfolded", t > unfoldAt + B.unfold * 0.9);
+                const swap1 = ENTER + B.dwell + B.swap / 2;
+                const f = t < swap1 ? 0 : t < swap1 + B.swap ? 1 : t < unfoldAt + B.unfold * 0.5 ? 2 : -1;
+                if (f !== frontRef.current) setFront((frontRef.current = f));
+              },
             },
           });
 
@@ -156,13 +194,14 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
               at + dur / 2,
             );
           };
-          // The card leaving the front fades out as it sinks, changes places in the stacking
-          // order while invisible (so nothing pops), then fades back in at the back.
+          // Deck shuffle: the card leaving the front slides out sideways, fully opaque, until it
+          // clears the stack, changes places in the stacking order there (nothing overlaps it,
+          // so nothing pops), then tucks back in behind the others.
+          const OUT = pose(-120, 2, -6, 0.94);
           const sinkToBack = (i: number, at: number) => {
-            move(i, FRONT, pose(-6, 11, -5, 0.9), back, at, B.swap);
-            tl.fromTo(card[i], { autoAlpha: 1 }, { autoAlpha: 0, duration: B.swap / 2, ease: "power2.in" }, at)
+            tl.fromTo(card[i], FRONT, { ...OUT, ease: "power1.inOut", duration: B.swap / 2 }, at)
               .set(card[i], { zIndex: 1 }, at + B.swap / 2)
-              .fromTo(card[i], { autoAlpha: 0 }, { autoAlpha: 1, duration: B.swap / 2, ease: "power2.out" }, at + B.swap / 2);
+              .fromTo(card[i], OUT, { ...back, ease: "power1.inOut", duration: B.swap / 2 }, at + B.swap / 2);
           };
           const shadowTo = (i: number, from: number, to: number, at: number, dur: number) =>
             tl.fromTo(part(i, "shadow"), { opacity: from }, { opacity: to, duration: dur }, at);
@@ -251,7 +290,33 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
           });
           lines.to({}, { duration: 0.001 }, pinned - 0.001); // span the whole pin so positions line up
 
-          return () => el.removeAttribute("data-unfolded");
+          // Closing statement: rises in centred above the finished row, in the gap between the
+          // nav and the cards' top edge. Desktop/tablet only (phones have no room above the column).
+          const outroEl = q<HTMLElement>("[data-reel-outro]")[0];
+          let placeOutro: (() => void) | undefined;
+          if (desktop && outroEl) {
+            placeOutro = () => {
+              const { rowTop, outroGap } = layout();
+              outroEl.style.top = `${rowTop - outroGap - outroEl.offsetHeight}px`; // sits just above the row
+            };
+            placeOutro();
+            ScrollTrigger.addEventListener("refresh", placeOutro);
+            const outroWords = outroEl.querySelectorAll<HTMLElement>("[data-word]");
+            gsap.set(outroWords, { yPercent: 115 });
+            const unfoldEnd = B.dwell + 2 * B.swap + B.unfold;
+            lines.fromTo(
+              outroWords,
+              { yPercent: 115 },
+              { yPercent: 0, stagger: 0.015, duration: B.hold * 0.6, ease: "power3.out" },
+              unfoldEnd - B.unfold * 0.1,
+            );
+          }
+
+          return () => {
+            el.removeAttribute("data-unfolded");
+            if (placeOutro) ScrollTrigger.removeEventListener("refresh", placeOutro);
+          };
+
         },
       );
 
@@ -285,7 +350,7 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
   }, []);
 
   const statement =
-    "font-display font-normal leading-[1] tracking-[-0.04em] text-[clamp(2.2rem,9vw,3rem)] md:text-[clamp(1.4rem,3.2vw,4.25rem)]";
+    "font-display font-normal leading-[1] tracking-[-0.04em] text-[clamp(1.75rem,9vw,3rem)] md:text-[clamp(1.4rem,3.2vw,4.25rem)]";
 
   return (
     <section
@@ -296,7 +361,7 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
     >
       <div
         data-reel-grid
-        className="mx-auto grid h-full max-w-[1680px] grid-rows-[1fr_auto_1fr] justify-items-center gap-8 px-gutter md:grid-cols-[minmax(0,1fr)_var(--reel-w)_minmax(0,1fr)] md:grid-rows-1 md:items-center md:gap-0 motion-reduce:h-auto motion-reduce:grid-cols-1 motion-reduce:grid-rows-none motion-reduce:gap-12 motion-reduce:md:grid-cols-1 motion-reduce:md:gap-12"
+        className="mx-auto grid h-full max-w-[1680px] grid-rows-[1fr_auto_1fr] justify-items-center gap-5 px-gutter pb-6 pt-[4.75rem] sm:gap-8 md:grid-cols-[minmax(0,1fr)_var(--reel-w)_minmax(0,1fr)] md:grid-rows-1 md:items-center md:gap-0 md:py-0 motion-reduce:h-auto motion-reduce:grid-cols-1 motion-reduce:grid-rows-none motion-reduce:gap-12 motion-reduce:md:grid-cols-1 motion-reduce:md:gap-12"
       >
         {/* Upper-left statement: offset upwards so the line reads diagonally across the stack */}
         <div
@@ -308,21 +373,21 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
             {cards.map((c, i) => (
               <div key={c.number} data-statement={i} className="flex flex-col items-center [grid-area:1/1] md:items-end">
                 {/* Small label (FROM / TO / AND): its words swap with the statement's */}
-                <AnimatedText as="p" text={c.eyebrow} className="mb-4 font-label text-[clamp(0.7rem,0.9vw,0.85rem)] uppercase tracking-[0.18em] text-ink-2 md:mb-6" />
+                <AnimatedText as="p" text={c.eyebrow} className="mb-4 font-label text-[clamp(0.7rem,0.9vw,0.85rem)] uppercase tracking-[0.16em] text-ink-2 md:mb-6" />
                 <AnimatedText as="p" text={c.left} className={`max-w-[12ch] text-center md:text-right ${statement}`} />
               </div>
             ))}
           </div>
         </div>
 
-        <div data-reel-stage className="relative z-10 w-(--reel-w) self-center motion-reduce:w-full motion-reduce:max-w-[1680px]">
+        <div data-reel-stage className="relative z-30 w-(--reel-w) self-center motion-reduce:w-full motion-reduce:max-w-[1680px]">
           <ul
             data-reel-card
             aria-label="Capabilities"
             className="relative aspect-[4/5] motion-reduce:grid motion-reduce:aspect-auto motion-reduce:gap-3 md:motion-reduce:grid-cols-3"
           >
             {cards.map((c, i) => (
-              <Card key={c.number} card={c} index={i} />
+              <Card key={c.number} card={c} index={i} playing={front === -1 || front === i} />
             ))}
           </ul>
         </div>
@@ -341,17 +406,27 @@ export default function OverlappingVideoSection({ cards, animation, id = "capabi
           </div>
         </div>
       </div>
+
+      {outro && (
+        <div
+          data-reel-outro
+          className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden px-gutter text-center md:block motion-reduce:hidden"
+        >
+          {/* the story's closing line: set like the statements either side of the stack */}
+          <AnimatedText as="p" text={outro} className="mx-auto max-w-[30ch] font-display font-normal leading-[1] tracking-[-0.04em] text-balance text-[clamp(1.75rem,2.9vw,3.75rem)]" />
+        </div>
+      )}
     </section>
   );
 }
 
-function Card({ card, index }: { card: CapabilityCard; index: number }) {
+function Card({ card, index, playing }: { card: CapabilityCard; index: number; playing: boolean }) {
   const face = (
     <>
       {/* Final colour, revealed as the stack unfolds */}
       <span data-card-tint aria-hidden className="absolute inset-0 opacity-0" style={{ background: card.tint }} />
       {card.youtube ? (
-        <YouTubeLoop id={card.youtube} title={`${card.title} showreel`} />
+        <YouTubeLoop id={card.youtube} title={`${card.title} showreel`} active={playing} />
       ) : card.video ? (
         // Footage is screened over the purple, so the card colour shows through dark areas
         <video

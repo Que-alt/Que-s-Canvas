@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowDown } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { heroScenes, ringSkills, site } from "@/data/site";
 import AnimatedText, { plainText } from "./AnimatedText";
@@ -26,7 +25,6 @@ const IDLE_PX = 24;
  */
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
-  const counter = useRef<HTMLSpanElement>(null);
 
   useGSAP(
     () => {
@@ -47,6 +45,10 @@ export default function Hero() {
           const dock = q<HTMLElement>("[data-dock]")[0];
           const portrait = q<HTMLElement>("[data-portrait]")[0];
           const home = q<HTMLElement>("[data-dock-home]")[0];
+          const arcs = q<SVGElement>("[data-progress-arc]");
+          const weight = scenes.map((s) => Number(s.dataset.beat) || 1); // share of scroll per scene
+          const totalBeats = weight.reduce((a, b) => a + b, 0);
+          const startBeat = weight.map((_, i) => weight.slice(0, i).reduce((a, b) => a + b, 0));
 
           // Safety net: if the markup isn't what the timeline expects (e.g. mid hot-reload),
           // don't half-initialise — just show the story statically.
@@ -61,6 +63,53 @@ export default function Hero() {
             return i === -1 ? Infinity : i;
           });
           const beat = (scene: number, i: number) => (i >= pauseAt[scene] ? BEAT : 0);
+
+          // ── Correction scene ("They call me ~~Que.~~ a Creative Technologist."): arrives showing
+          // only the words before its {pause}; scrolling on strikes through one word and reveals
+          // the rest. Driven by scroll position like the scenes, so it reverses scrolling up.
+          const ci = scenes.findIndex((s) => s.dataset.strike);
+          const struck = ci < 0 ? undefined : [...words[ci]].find((w) => w.textContent?.trim() === scenes[ci].dataset.strike);
+          const strikeAt = ci < 0 ? 1 : Number(scenes[ci].dataset.strikeAt) || 0.5;
+          const later = ci < 0 ? [] : [...words[ci]].slice(pauseAt[ci]);
+          const shown = (i: number) => (i === ci ? [...words[i]].slice(0, pauseAt[i]) : [...words[i]]);
+          let line: HTMLElement | undefined;
+          if (struck) {
+            struck.style.position = "relative";
+            line = document.createElement("span");
+            line.setAttribute("aria-hidden", "");
+            line.className = "pointer-events-none absolute inset-x-0 top-[54%] h-[0.075em] origin-left rounded-full bg-ink";
+            struck.appendChild(line);
+            gsap.set(line, { scaleX: 0 });
+          }
+          // the struck word dims by colour (not opacity), so it never fights the scene's own reveal
+          const ink = struck ? getComputedStyle(struck).color : "";
+          const dimmed = ink.replace(/^rgba?\(([^,]+),([^,]+),([^,)]+).*$/, "rgba($1,$2,$3,0.4)");
+          let corrected = false;
+          const correct = (on: boolean, dir: number, instant = false) => {
+            if (!struck || !line || on === corrected) return;
+            corrected = on;
+            gsap.killTweensOf([line, struck, ...later]);
+            if (instant || reduce) {
+              gsap.set(line, { scaleX: on ? 1 : 0 });
+              gsap.set(struck, { color: on ? dimmed : ink });
+              gsap.set(later, on ? { y: 0, yPercent: 0, autoAlpha: 1 } : { autoAlpha: 0 });
+              return;
+            }
+            if (on) {
+              // the line draws through the word, then the real answer rises in beneath it
+              gsap.to(line, { scaleX: 1, duration: 0.45, ease: "power2.inOut" });
+              gsap.to(struck, { color: dimmed, duration: 0.45, ease: "power2.out" });
+              gsap.fromTo(
+                later,
+                { y: 0, yPercent: 115, autoAlpha: 0 },
+                { y: 0, yPercent: 0, autoAlpha: 1, duration: 0.6, ease: "power3.out", delay: 0.4, stagger: 0.05 },
+              );
+            } else {
+              gsap.to(later, { yPercent: dir > 0 ? -115 : 115, autoAlpha: 0, duration: 0.3, ease: "power2.in", stagger: { amount: 0.05 } });
+              gsap.to(line, { scaleX: 0, duration: 0.35, ease: "power2.inOut", delay: 0.15 });
+              gsap.to(struck, { color: ink, duration: 0.35, delay: 0.15 });
+            }
+          };
           let active = -1; // -1 = opening state: orb alone, no copy
           let docked = false;
 
@@ -100,20 +149,25 @@ export default function Hero() {
             // Single source of truth for "which statement is showing", stored on the element so
             // any reveal queued by an earlier callback can check it before it starts.
             el.dataset.activeScene = String(next);
-            if (counter.current) counter.current.textContent = pad(Math.max(next, 0) + 1);
+            // Progress lives on the orb: one arc of the ring per statement, lit up to the current one
+            arcs.forEach((arc, i) =>
+              gsap.to(arc, { opacity: i <= next ? 1 : 0, duration: instant ? 0 : 0.5, ease: "power2.out", overwrite: true }),
+            );
 
             // Enforce the end state for every scene (not just the previous one), so a fast
             // or interrupted scroll can never leave the active statement hidden.
             scenes.forEach((_, i) => {
               if (i === next) return;
               gsap.killTweensOf(words[i]); // includes reveals that are scheduled but not yet started
-              const visible = [...words[i]].some((w) => Number(gsap.getProperty(w, "autoAlpha")) > 0);
+              if (i === ci) correct(false, dir, true); // leaving the correction scene resets it
+              const out = [...words[i]];
+              const visible = out.some((w) => Number(gsap.getProperty(w, "autoAlpha")) > 0);
               if (!visible) {
                 gsap.set(words[i], { autoAlpha: 0, overwrite: true });
                 return;
               }
               gsap.to(
-                words[i],
+                out,
                 reduce
                   ? { autoAlpha: 0, duration: 0.25, overwrite: true }
                   : {
@@ -131,6 +185,7 @@ export default function Hero() {
 
             if (next < 0) return;
             gsap.killTweensOf(words[next]);
+            const reveal = shown(next);
             // If another scene became active while this reveal was waiting, cancel it.
             const stillActive = function (this: gsap.core.Tween) {
               if (el.dataset.activeScene === String(next)) return;
@@ -138,7 +193,7 @@ export default function Hero() {
               gsap.set(words[next], { autoAlpha: 0, overwrite: true });
             };
             if (reduce) {
-              gsap.to(words[next], {
+              gsap.to(reveal, {
                 y: 0,
                 yPercent: 0,
                 autoAlpha: 1,
@@ -150,7 +205,7 @@ export default function Hero() {
               });
             } else {
               gsap.fromTo(
-                words[next],
+                reveal,
                 { y: 0, yPercent: dir > 0 ? 115 : -115, autoAlpha: 0 },
                 {
                   y: 0,
@@ -160,7 +215,7 @@ export default function Hero() {
                   ease: "power3.out",
                   // when the orb is gliding into place, let it lead slightly
                   delay: next === 1 && dir > 0 ? 0.35 : 0.12,
-                  stagger: (i) => i * Math.min(0.06, 0.22 / words[next].length) + beat(next, i),
+                  stagger: (i) => i * Math.min(0.06, 0.22 / reveal.length) + beat(next, i),
                   onStart: stillActive,
                   overwrite: true,
                 },
@@ -170,26 +225,37 @@ export default function Hero() {
 
           const sceneAt = (self: ScrollTrigger) => {
             if (self.progress * (self.end - self.start) < IDLE_PX) return -1;
-            return Math.min(scenes.length - 1, Math.floor(self.progress * scenes.length));
+            const at = self.progress * totalBeats;
+            let i = 0;
+            while (i < scenes.length - 1 && at >= startBeat[i + 1]) i++;
+            return i;
           };
 
-          // Continuous, scrubbed layer: portrait, ring and progress rail follow the scroll exactly
+          // Past `strikeAt` of the correction scene's scroll, the correction shows
+          const correctedAt = (self: ScrollTrigger) =>
+            ci >= 0 && sceneAt(self) === ci && self.progress * totalBeats >= startBeat[ci] + weight[ci] * strikeAt;
+
+          // Continuous, scrubbed layer: portrait and ring follow the scroll exactly
           const tl = gsap.timeline({
             defaults: { ease: "none", duration: 1 },
             scrollTrigger: {
               trigger: el,
               start: "top top",
-              // one "beat" of scroll per statement; shorter on phones so it never feels like a trap
-              end: () => `+=${window.innerHeight * scenes.length * (desktop ? 0.5 : 0.42)}`,
+              // one "beat" of scroll per statement (steps take their share); shorter on phones so it never feels like a trap
+              end: () => `+=${window.innerHeight * totalBeats * (desktop ? 0.5 : 0.42)}`,
               pin: true,
               scrub: 0.6,
               anticipatePin: 1,
               invalidateOnRefresh: true,
-              onUpdate: (self) => show(sceneAt(self), self.direction),
+              onUpdate: (self) => {
+                show(sceneAt(self), self.direction);
+                correct(correctedAt(self), self.direction);
+              },
               onRefresh: (self) => {
                 sizeOpening();
                 if (!docked) placeOrb(false, false); // re-centre after a resize
                 show(sceneAt(self), 1, true);
+                correct(correctedAt(self), 1, true);
               },
             },
           });
@@ -203,7 +269,6 @@ export default function Hero() {
             );
             tl.to(q("[data-ring]"), { rotate: 220 }, 0);
           }
-          tl.to(q("[data-progress]"), { scaleX: 1 }, 0);
           tl.to(q("[data-scroll-hint]"), { autoAlpha: 0, duration: 0.1 }, 0);
 
           // Hand-off to the portfolio: as the hero un-pins, the bridging statement and the
@@ -224,6 +289,12 @@ export default function Hero() {
               .to(q("[data-hero-rail]"), { autoAlpha: 0 }, 0)
               .to(q("[data-portrait-fade]"), { autoAlpha: 0.15, scale: 0.92 }, 0);
           }
+
+          // the strike line is added by hand, so take it out again when this context reverts
+          return () => {
+            line?.remove();
+            if (struck) struck.style.removeProperty("color");
+          };
         },
       );
 
@@ -237,7 +308,7 @@ export default function Hero() {
   const [opening, ...story] = heroScenes;
   const [openLeft, openRight = ""] = opening.text.split(ORB);
   const statement = "font-display font-normal leading-[0.98] tracking-[-0.04em]";
-  const label = "font-label text-[clamp(0.7rem,0.9vw,0.85rem)] uppercase tracking-[0.18em] text-ink-2";
+  const label = "font-label text-[clamp(0.7rem,0.9vw,0.85rem)] uppercase tracking-[0.16em] text-ink-2";
 
   return (
     <section
@@ -266,7 +337,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="mx-auto grid h-full max-w-[1680px] grid-rows-[auto_1fr] items-center gap-8 px-gutter pb-24 pt-28 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)] md:grid-rows-1 md:gap-[6vw] md:py-0">
+      <div className="mx-auto grid h-full max-w-[1680px] grid-rows-[auto_auto] content-center items-center gap-8 px-gutter pb-20 pt-24 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)] md:grid-rows-1 md:content-normal md:gap-[6vw] md:py-0">
         <Portrait />
 
         <motion.div
@@ -277,7 +348,14 @@ export default function Hero() {
         >
           <div data-hero-copy className="grid">
             {story.map((scene, i) => (
-              <div key={i} data-scene className="hero-scene [grid-area:1/1] self-center">
+              <div
+                key={i}
+                data-scene
+                data-beat={scene.beat}
+                data-strike={scene.strike?.word}
+                data-strike-at={scene.strike?.at}
+                className="hero-scene [grid-area:1/1] self-center"
+              >
                 <AnimatedText as="p" text={`${pad(i + 2)} — ${scene.label}`} className={`mb-5 md:mb-8 ${label}`} />
                 <AnimatedText
                   as="p"
@@ -288,7 +366,7 @@ export default function Hero() {
                   <AnimatedText
                     as="p"
                     text={scene.sub}
-                    className="mt-6 font-label text-[clamp(0.8rem,1.1vw,1rem)] uppercase tracking-[0.18em] text-ink-2 md:mt-10"
+                    className="mt-6 font-label text-[clamp(0.8rem,1.1vw,1rem)] uppercase tracking-[0.16em] text-ink-2 md:mt-10"
                   />
                 )}
               </div>
@@ -297,21 +375,9 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Bottom rail: scroll hint · progress · scene counter */}
-      <div
-        data-hero-rail
-        className="absolute inset-x-0 bottom-0 flex items-center gap-6 px-gutter pb-6 font-label text-[11px] uppercase tracking-[0.14em] text-ink-2 md:pb-8"
-      >
-        <span data-scroll-hint className="flex shrink-0 items-center gap-2">
-          <ArrowDown className="size-3.5 animate-bounce" aria-hidden />
-          Scroll
-        </span>
-        <span className="relative h-px flex-1 bg-line" aria-hidden>
-          <span data-progress className="absolute inset-0 origin-left scale-x-0 bg-brand bg-iridescent-flat" />
-        </span>
-        <span className="shrink-0 tabular-nums" aria-hidden>
-          <span ref={counter}>01</span> / {pad(heroScenes.length)}
-        </span>
+      {/* Scroll hint in plain words; fades out on the first scroll */}
+      <div data-hero-rail className="absolute inset-x-0 bottom-0 px-gutter pb-6 text-center text-[15px] text-ink-2 md:pb-8 md:text-left">
+        <TypedHint data-scroll-hint text="Keep scrolling, it gets better." />
       </div>
     </section>
   );
@@ -352,6 +418,8 @@ function Portrait() {
                 </text>
               </g>
             </svg>
+
+            <ProgressRing count={heroScenes.length} />
 
             {site.portrait?.cutout ? (
               <>
@@ -398,6 +466,70 @@ function Portrait() {
   );
 }
 
+/**
+ * Scroll hint that types itself out once the orb has settled, then leaves a blinking cursor.
+ * The full line is laid out invisibly underneath, so typing never shifts the layout, and
+ * screen readers get the whole sentence at once.
+ */
+function TypedHint({ text, ...rest }: { text: string; "data-scroll-hint"?: boolean }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShown(text.length);
+      return;
+    }
+    let timer: ReturnType<typeof setTimeout>;
+    const type = (n: number) => {
+      setShown(n);
+      if (n < text.length) timer = setTimeout(() => type(n + 1), 45 + Math.random() * 55);
+    };
+    timer = setTimeout(() => type(1), 1600); // after the orb's entrance
+    return () => clearTimeout(timer);
+  }, [text]);
+
+  return (
+    <span {...rest} className="inline-grid">
+      <span className="sr-only">{text}</span>
+      <span aria-hidden className="invisible [grid-area:1/1]">{text}</span>
+      <span aria-hidden className="[grid-area:1/1] text-left">
+        {text.slice(0, shown)}
+        <span className="caret-blink ml-px inline-block h-[1.05em] w-[1.5px] translate-y-[0.15em] bg-brand" />
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Hero progress, drawn as a ring just outside the skills: one arc per statement, starting at
+ * the top and running clockwise. Doesn't spin with the skills, so it reads as a gauge.
+ */
+function ProgressRing({ count }: { count: number }) {
+  const r = 99;
+  const c = 2 * Math.PI * r;
+  const step = c / count;
+  const gap = 5;
+  const arc = (i: number) => ({
+    cx: 100,
+    cy: 100,
+    r,
+    fill: "none",
+    strokeWidth: 1.2,
+    strokeLinecap: "round" as const,
+    strokeDasharray: `${step - gap} ${c - step + gap}`,
+    strokeDashoffset: -(i * step + gap / 2),
+  });
+  return (
+    <svg viewBox="0 0 200 200" aria-hidden className="absolute -inset-[9%] size-[118%] -rotate-90 overflow-visible">
+      {Array.from({ length: count }, (_, i) => (
+        <g key={i}>
+          <circle {...arc(i)} stroke="currentColor" className="text-ink/12" />
+          <circle {...arc(i)} data-progress-arc stroke="currentColor" className="text-brand" opacity={0} />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function PortraitPlaceholder() {
   return (
     <div
@@ -409,7 +541,7 @@ function PortraitPlaceholder() {
         <circle cx="100" cy="84" r="34" fill="#d6d6d1" />
         <path d="M34 200c4-44 32-70 66-70s62 26 66 70z" fill="#d6d6d1" />
       </svg>
-      <span className="absolute inset-x-0 bottom-[16%] text-center font-label text-[10px] uppercase tracking-[0.18em] text-ink/40">
+      <span className="absolute inset-x-0 bottom-[16%] text-center font-label text-[10px] uppercase tracking-[0.16em] text-ink/40">
         Your portrait
       </span>
     </div>

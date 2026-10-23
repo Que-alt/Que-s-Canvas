@@ -55,7 +55,7 @@ export default async function CaseStudyPage({ params }: Props) {
       <header className="mx-auto max-w-[1680px] px-gutter pt-32 md:pt-40">
         <Link
           href="/#work"
-          className="link-underline inline-flex items-center gap-2 font-label text-xs uppercase tracking-[0.14em] text-ink-2"
+          className="link-underline inline-flex items-center gap-2 font-label text-xs uppercase tracking-[0.16em] text-ink-2"
         >
           <ArrowLeft className="size-3.5" aria-hidden /> Selected Works
         </Link>

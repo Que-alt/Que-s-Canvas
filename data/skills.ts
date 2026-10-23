@@ -1,12 +1,17 @@
 // ─────────────────────────────────────────────────────────────
-//  Skills & tools. Logos come from simple-icons where an official
-//  mark is available. For anything else, drop an SVG into
-//  /public/logos and set `src`; until then a labelled monogram
+//  Skills & tools. Resting logos are single-colour simple-icons marks;
+//  `logo` is the official full-colour version shown on hover
+//  (/public/logos/tools, from devicon and the CC0 gilbarbara/logos set;
+//  Miro's app icon is built from its simple-icons mark). With no logo at all, a labelled monogram
 //  placeholder is shown.
 // ─────────────────────────────────────────────────────────────
 
 import {
+  siClaude,
+  siElevenlabs,
   siFigma,
+  siGooglecloud,
+  siGooglegemini,
   siMaze,
   siMiro,
   siNextdotjs,
@@ -19,7 +24,8 @@ import {
 export type Tool = {
   name: string;
   icon?: { path: string; hex: string }; // simple-icons entry
-  src?: string; // custom SVG in /public/logos
+  src?: string; // custom single-colour SVG in /public/logos
+  logo?: string; // full-colour logo shown on hover
   monogram?: string; // placeholder text when no logo is available
 };
 
@@ -51,10 +57,15 @@ export const disciplines: Discipline[] = [
       "Usability Testing",
     ],
     tools: [
-      { name: "Figma", icon: siFigma },
-      { name: "FigJam", monogram: "Fj" }, // not in simple-icons: add /public/logos/figjam.svg and set src
-      { name: "Miro", icon: siMiro },
-      { name: "Maze", icon: siMaze },
+      { name: "Figma", icon: siFigma, logo: "/logos/tools/figma.svg" },
+      { name: "FigJam", icon: siFigma, logo: "/logos/tools/figma.svg" }, // FigJam shares Figma's logo
+      { name: "Miro", icon: siMiro, logo: "/logos/tools/miro.svg" },
+      { name: "Maze", icon: siMaze }, // Maze's own logo is single-colour black
+      { name: "Adobe Suite", logo: "/logos/tools/adobe.svg" }, // Illustrator, Photoshop, After Effects…
+      // Nano Banana is Gemini's image model and has no logo of its own, so it wears Gemini's
+      { name: "Nano Banana", icon: siGooglegemini, logo: "/logos/tools/google-gemini.svg" },
+      { name: "Midjourney", logo: "/logos/tools/midjourney.svg" }, // its sailboat mark is single-colour
+      { name: "ElevenLabs", icon: siElevenlabs, logo: "/logos/tools/elevenlabs.svg" },
     ],
   },
   {
@@ -74,12 +85,16 @@ export const disciplines: Discipline[] = [
       "Technical Strategy",
     ],
     tools: [
-      { name: "React", icon: siReact },
-      { name: "Next.js", icon: siNextdotjs },
-      { name: "TypeScript", icon: siTypescript },
-      { name: "Tailwind CSS", icon: siTailwindcss },
-      { name: "Node.js", icon: siNodedotjs },
-      { name: "AWS", monogram: "AWS" }, // not in simple-icons: add /public/logos/aws.svg and set src
+      { name: "React", icon: siReact, logo: "/logos/tools/react.svg" },
+      { name: "Next.js", icon: siNextdotjs, logo: "/logos/tools/nextjs.svg" },
+      { name: "TypeScript", icon: siTypescript, logo: "/logos/tools/typescript.svg" },
+      { name: "Tailwind CSS", icon: siTailwindcss, logo: "/logos/tools/tailwindcss.svg" },
+      { name: "Node.js", icon: siNodedotjs, logo: "/logos/tools/nodejs.svg" },
+      { name: "AWS", logo: "/logos/tools/amazonwebservices.svg" }, // not in simple-icons: rests as a silhouette of the colour logo
+      { name: "OpenAI", logo: "/logos/tools/openai.svg" },
+      // Vertex AI has no public logo file; it's part of Google Cloud, so it wears that mark
+      { name: "Vertex AI", icon: siGooglecloud, logo: "/logos/tools/google-cloud.svg" },
+      { name: "Claude", icon: siClaude, logo: "/logos/tools/claude.svg" },
     ],
   },
 ];

@@ -10,7 +10,7 @@ export type Brand = { name: string; logo?: { src: string; width: number; height:
 
 export const brands: Brand[] = [
   { name: "Safaricom", logo: { src: "/brands/safaricom.png", width: 800, height: 200 } },
-  { name: "KCB", logo: { src: "/brands/kcb.png", width: 522, height: 200 } },
+  { name: "KCB", logo: { src: "/brands/kcb-mark.png", width: 463, height: 136 } }, // green panel knocked out so it sits like the rest
   { name: "NCBA", logo: { src: "/brands/ncba.png", width: 562, height: 200 } },
   { name: "Equity", logo: { src: "/brands/equity.png", width: 274, height: 182 } },
   { name: "Standard Chartered", logo: { src: "/brands/standard-chartered.png", width: 478, height: 200 } },

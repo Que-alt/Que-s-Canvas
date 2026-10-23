@@ -1,14 +1,16 @@
 "use client";
 
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
-import { ArrowUpRight } from "lucide-react";
-import type { PointerEvent } from "react";
+import { ArrowUp, ArrowUpRight } from "lucide-react";
+import { useState, type PointerEvent } from "react";
 import { site } from "@/data/site";
 import AnimatedText from "./AnimatedText";
+import ContactForm from "./ContactForm";
 import Reveal from "./Reveal";
 
 export default function ContactSection() {
   const { email, linkedin, github } = site.contact;
+  const [formOpen, setFormOpen] = useState(false);
 
   // Sits under the invitation copy; anything left empty in data/site.ts is simply not shown
   const links = [
@@ -18,7 +20,7 @@ export default function ContactSection() {
   ].filter((l) => l.href);
 
   return (
-    <section data-header="dark" id="contact" aria-labelledby="contact-title" className="bg-night bg-morpheus-down px-gutter pb-24 pt-32 text-white md:pb-32 md:pt-44">
+    <section data-header="dark" id="contact" aria-labelledby="contact-title" className="bg-night bg-morpheus-down px-gutter pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-32 text-white md:pb-10 md:pt-44">
       <div className="mx-auto max-w-[1680px]">
         <p className="font-label text-xs uppercase tracking-[0.16em] text-white/55">What&apos;s next?</p>
         <AnimatedText
@@ -52,20 +54,34 @@ export default function ContactSection() {
             </ul>
           </Reveal>
           <Reveal delay={0.15}>
-            <MagneticCTA href={email ? `mailto:${email}` : undefined} />
+            <MagneticCTA onClick={() => setFormOpen(true)} />
           </Reveal>
         </div>
+
+        {/* Sign-off. The floating pill sits between these two on wide screens. */}
+        <footer className="mt-24 flex items-center justify-between gap-6 border-t border-white/10 pt-6 text-sm text-white/50 md:mt-32">
+          <p>© {new Date().getFullYear()} {site.name}</p>
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
+            className="group inline-flex items-center gap-2 transition-colors hover:text-white"
+          >
+            Back to top
+            <ArrowUp className="size-4 transition-transform duration-500 ease-out-expo group-hover:-translate-y-0.5" aria-hidden />
+          </button>
+        </footer>
       </div>
+      <ContactForm open={formOpen} onClose={() => setFormOpen(false)} />
     </section>
   );
 }
 
-function MagneticCTA({ href }: { href?: string }) {
+function MagneticCTA({ onClick }: { onClick: () => void }) {
   const reduce = useReducedMotion();
   const x = useSpring(useMotionValue(0), { stiffness: 220, damping: 18, mass: 0.4 });
   const y = useSpring(useMotionValue(0), { stiffness: 220, damping: 18, mass: 0.4 });
 
-  const onMove = (e: PointerEvent<HTMLAnchorElement>) => {
+  const onMove = (e: PointerEvent<HTMLButtonElement>) => {
     if (reduce || e.pointerType !== "mouse") return;
     const r = e.currentTarget.getBoundingClientRect();
     x.set((e.clientX - (r.left + r.width / 2)) * 0.18);
@@ -77,10 +93,10 @@ function MagneticCTA({ href }: { href?: string }) {
   };
 
   return (
-    <motion.a
-      href={href ?? "#contact"}
-      aria-disabled={!href || undefined}
-      title={href ? undefined : "Add your email address in data/site.ts"}
+    <motion.button
+      type="button"
+      onClick={onClick}
+      aria-haspopup="dialog"
       onPointerMove={onMove}
       onPointerLeave={reset}
       style={{ x, y }}
@@ -90,6 +106,6 @@ function MagneticCTA({ href }: { href?: string }) {
       <span className="grid size-14 place-items-center rounded-full bg-accent text-ink transition-transform duration-500 ease-out-expo group-hover:rotate-45 md:size-16">
         <ArrowUpRight className="size-6" aria-hidden />
       </span>
-    </motion.a>
+    </motion.button>
   );
 }

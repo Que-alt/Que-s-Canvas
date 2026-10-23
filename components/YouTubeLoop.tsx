@@ -6,34 +6,46 @@ const ORIGIN = "https://www.youtube-nocookie.com";
 
 /**
  * A YouTube video used as a silent, looping background: muted, no controls, no
- * interaction, cropped to cover its container. Plays only while on screen and never
- * under reduced motion (the thumbnail shows instead).
+ * interaction, cropped to cover its container. The player only loads once it's within a
+ * screen of view, plays only while on screen and `active`, and never under reduced motion
+ * (the thumbnail shows instead).
  */
-export default function YouTubeLoop({ id, title }: { id: string; title: string }) {
+export default function YouTubeLoop({ id, title, active = true }: { id: string; title: string; active?: boolean }) {
   const wrap = useRef<HTMLSpanElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
-  const [embed, setEmbed] = useState(false);
+  const [motionOk, setMotionOk] = useState(false);
+  const [near, setNear] = useState(false); // within a screen of view: load the player
+  const [visible, setVisible] = useState(false); // on screen: let it play
+  const [loaded, setLoaded] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const embed = motionOk && near;
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setEmbed(!reduce.matches);
+    const update = () => setMotionOk(!reduce.matches);
     update();
     reduce.addEventListener("change", update);
     return () => reduce.removeEventListener("change", update);
   }, []);
 
-  // Pause off screen, resume on screen (via the IFrame API's postMessage commands)
   useEffect(() => {
-    if (!embed || !wrap.current) return;
-    const send = (func: "playVideo" | "pauseVideo") =>
-      frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args: [] }), ORIGIN);
-    const io = new IntersectionObserver(([e]) => send(e.isIntersecting ? "playVideo" : "pauseVideo"), {
-      rootMargin: "20% 0px",
-    });
-    io.observe(wrap.current);
-    return () => io.disconnect();
-  }, [embed]);
+    if (!wrap.current) return;
+    const nearIO = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "100% 0px" });
+    const seenIO = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: "20% 0px" });
+    nearIO.observe(wrap.current);
+    seenIO.observe(wrap.current);
+    return () => {
+      nearIO.disconnect();
+      seenIO.disconnect();
+    };
+  }, []);
+
+  // Play only while on screen and active (via the IFrame API's postMessage commands)
+  useEffect(() => {
+    if (!embed || !loaded) return;
+    const func = visible && active ? "playVideo" : "pauseVideo";
+    frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args: [] }), ORIGIN);
+  }, [embed, loaded, visible, active]);
 
   // Reveal the player only once YouTube reports playback, so its black loading frame and
   // spinner never show: the thumbnail stays until the footage is actually moving.
@@ -54,8 +66,10 @@ export default function YouTubeLoop({ id, title }: { id: string; title: string }
   }, [embed]);
 
   // Subscribe to the player's state events once the embed has loaded
-  const listen = () =>
+  const listen = () => {
     frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "listening", id }), ORIGIN);
+    setLoaded(true);
+  };
 
   const params = new URLSearchParams({
     autoplay: "1",

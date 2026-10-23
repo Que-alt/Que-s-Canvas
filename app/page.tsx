@@ -1,3 +1,4 @@
+import AwardsSection from "@/components/AwardsSection";
 import BrandGallery from "@/components/BrandGallery";
 import ContactSection from "@/components/ContactSection";
 import Hero from "@/components/Hero";
@@ -29,6 +30,7 @@ export default function Home() {
       <HorizontalProjectGallery projects={projects} />
       <SkillsSection />
       <BrandGallery />
+      <AwardsSection />
       <ContactSection />
     </>
   );
