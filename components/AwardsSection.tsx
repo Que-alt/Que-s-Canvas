@@ -106,13 +106,16 @@ function FeaturedCard({ award }: { award: Award }) {
         <p className="font-display text-[clamp(2.75rem,5vw,5rem)] font-medium leading-[0.95] tracking-[-0.045em]">{award.figure}</p>
         {/* fixed-height row, so every card's title and line underneath sit at the same height */}
         <div className="mt-5 flex min-h-7 flex-wrap items-center gap-x-4 gap-y-2">
-          {award.titles.length > 0 && (
+          {award.titles.length > 0 ? (
             <>
               <p className="text-lg text-white/85">{award.titles.join(" · ")}</p>
               <span aria-hidden className={`h-px w-8 ${accent}`} />
+              <AwardingBody award={award} dark />
             </>
+          ) : (
+            // no separate title (e.g. Bronze — The Loeries): the awarding body is the main line
+            <p className="text-lg text-white/85">{award.by.join(" · ")}</p>
           )}
-          <AwardingBody award={award} dark />
         </div>
       </div>
     </motion.div>
