@@ -407,8 +407,8 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Scroll hint in plain words; fades out on the first scroll */}
-      <div data-hero-rail className="absolute inset-x-0 bottom-0 px-gutter pb-6 text-center text-[15px] text-ink-2 md:pb-8 md:text-left">
+      {/* Scroll hint in plain words, centred under the orb; fades out on the first scroll */}
+      <div data-hero-rail className="absolute inset-x-0 bottom-0 px-gutter pb-6 text-center text-[15px] text-ink-2 md:pb-8">
         <TypedHint data-scroll-hint text="Keep scrolling, it gets better." />
       </div>
     </section>
