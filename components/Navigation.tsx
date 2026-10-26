@@ -29,17 +29,27 @@ export default function Navigation() {
 
   // Deep links like /#work: the browser jumps to the anchor before the pinned sections add
   // their scroll space, landing in the wrong place. Jump again after the first layout pass.
+  // Arriving by an in-page link (e.g. a case study's "Selected Works"), Next.js scrolls to the
+  // anchor itself after this has run, so jump once more a couple of frames later.
   useEffect(() => {
     const id = decodeURIComponent(location.hash.slice(1));
     if (!id) return;
-    const jump = () => {
-      ScrollTrigger.removeEventListener("refresh", jump);
+    let frame = 0;
+    const go = () => {
       const el = document.getElementById(id);
       if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: "auto" });
     };
+    const jump = () => {
+      ScrollTrigger.removeEventListener("refresh", jump);
+      go();
+      frame = requestAnimationFrame(() => (frame = requestAnimationFrame(go)));
+    };
     ScrollTrigger.addEventListener("refresh", jump);
     ScrollTrigger.refresh();
-    return () => ScrollTrigger.removeEventListener("refresh", jump);
+    return () => {
+      ScrollTrigger.removeEventListener("refresh", jump);
+      cancelAnimationFrame(frame);
+    };
   }, [pathname]);
 
   // Switch the header to light text while it sits over a dark section, and dock the

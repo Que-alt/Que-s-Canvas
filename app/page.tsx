@@ -2,11 +2,11 @@ import AwardsSection from "@/components/AwardsSection";
 import BrandGallery from "@/components/BrandGallery";
 import ContactSection from "@/components/ContactSection";
 import Hero from "@/components/Hero";
-import HorizontalProjectGallery from "@/components/HorizontalProjectGallery";
 import OverlappingVideoSection from "@/components/OverlappingVideoSection";
 import SkillsSection from "@/components/SkillsSection";
-import { projects } from "@/data/projects";
+import WorkShowcase from "@/components/WorkShowcase";
 import { showreel, site } from "@/data/site";
+import { workCategories } from "@/data/work";
 
 export default function Home() {
   const personJsonLd = {
@@ -27,7 +27,7 @@ export default function Home() {
       />
       <Hero />
       <OverlappingVideoSection {...showreel} />
-      <HorizontalProjectGallery projects={projects} />
+      <WorkShowcase categories={workCategories} />
       <SkillsSection />
       <BrandGallery />
       <AwardsSection />

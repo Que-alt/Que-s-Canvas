@@ -27,9 +27,9 @@
 
 :root {
   --gutter: clamp(1rem, 5vw, 4.5rem);
-  /* Height of project imagery inside the pinned gallery. */
+  /* Height of project imagery in the pinned Selected Work showcase: */
   /* leaves room under the cards for their text and the floating navigation pill */
-  --media-h: clamp(16rem, calc(100svh - 25rem), 38rem);
+  --work-media-h: clamp(14rem, calc(80svh - 7rem), 36rem);
 }
 
 /* Morpheus signature gradient. "-down" variant ends on night so the footer joins seamlessly. */
@@ -213,28 +213,29 @@ h3 {
   }
 }
 
-/* ── Selected Works gallery ────────────────────────────────── */
-.work-card {
-  width: min(86vw, 30rem);
+/* ── Selected Work showcase ──────────────────────────────── */
+/* The active pair comes in staggered; the others leave quickly, upwards if already seen and
+   downwards if still to come, so the motion follows the scroll direction. */
+.work-panel [data-work-card] {
+  transition:
+    opacity 0.7s var(--ease-out-expo) 0.12s,
+    translate 0.9s var(--ease-out-expo) 0.12s,
+    scale 0.9s var(--ease-out-expo) 0.12s;
 }
-.work-card__media {
-  aspect-ratio: 16 / 10;
+.work-panel [data-work-card]:nth-child(2) {
+  transition-delay: 0.2s;
 }
-
-@media (min-width: 768px) {
-  .work-card {
-    width: min(78vw, 42rem);
-  }
+.work-panel:not([data-state="current"]) [data-work-card] {
+  opacity: 0;
+  scale: 0.97;
+  transition-duration: 0.35s, 0.5s, 0.5s;
+  transition-delay: 0s;
 }
-
-@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  .work-card {
-    width: calc(var(--media-h) * 1.6);
-  }
-  .work-card__media {
-    aspect-ratio: auto;
-    height: var(--media-h);
-  }
+.work-panel[data-state="past"] [data-work-card] {
+  translate: 0 -28px;
+}
+.work-panel[data-state="next"] [data-work-card] {
+  translate: 0 40px;
 }
 
 .no-scrollbar {

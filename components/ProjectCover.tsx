@@ -2,17 +2,16 @@ import Image from "next/image";
 import type { Project } from "@/data/projects";
 
 type Props = {
-  project: Project;
+  project: Pick<Project, "title" | "tint" | "cover">;
   index: number;
   sizes: string;
-  priority?: boolean;
 };
 
 /**
- * Project cover image. Until a real cover is added in data/projects.ts,
+ * Project cover image. Until a real cover is added in data/projects.ts (or data/work.ts),
  * fills the container with the project tint (screen readers hear it as a placeholder).
  */
-export default function ProjectCover({ project, index, sizes, priority }: Props) {
+export default function ProjectCover({ project, index, sizes }: Props) {
   if (project.cover) {
     return (
       <Image
@@ -20,7 +19,6 @@ export default function ProjectCover({ project, index, sizes, priority }: Props)
         alt={project.cover.alt}
         fill
         sizes={sizes}
-        priority={priority}
         className="object-cover"
       />
     );

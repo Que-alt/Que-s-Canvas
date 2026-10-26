@@ -79,6 +79,10 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
           const container = q<HTMLElement>("[data-reel-grid]")[0];
           const card = q<HTMLElement>("[data-card]");
           if (!box || card.length !== 3) return;
+          // Start every word from a clean transform. A setup that was discarded (React runs effects
+          // twice in development, e.g. when returning to the page via a link) can leave a word's
+          // hidden offset behind, which GSAP would otherwise read back as a fixed pixel shift.
+          gsap.set(q("[data-word]"), { clearProps: "transform" });
           const part = (i: number, name: string) => card[i].querySelectorAll<HTMLElement>(`[data-card-${name}]`);
 
           const spread = a.spread * (desktop ? 1 : 0.6); // keep the fan inside narrow screens
@@ -278,10 +282,10 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
           // as the cards, also never invalidated.
           const words = (i: number) => q(`[data-statement='${i}'] [data-word]`);
           gsap.set([...words(1), ...words(2)], { yPercent: 115 });
-          const lines = gsap.timeline({
-            defaults: { ease: "none", immediateRender: false },
-            scrollTrigger: { trigger: el, start: "top top", end: () => `+=${pinned * vh()}`, scrub: a.scrub },
-          });
+          // Built first and attached to the scroll last (below): a tween added after its
+          // ScrollTrigger has already rendered (e.g. the page opens scrolled past this section,
+          // as /#work does) is never drawn, which left the closing line hidden.
+          const lines = gsap.timeline({ defaults: { ease: "none", immediateRender: false }, paused: true });
           [0, 1].forEach((out) => {
             const at = B.dwell + out * B.swap;
             lines
@@ -303,14 +307,24 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
             ScrollTrigger.addEventListener("refresh", placeOutro);
             const outroWords = outroEl.querySelectorAll<HTMLElement>("[data-word]");
             gsap.set(outroWords, { yPercent: 115 });
+            // Rises during the second half of the unfold and is fully in place by the time the row
+            // forms: scrolling snaps to rest right there, so a later reveal would be left hidden.
             const unfoldEnd = B.dwell + 2 * B.swap + B.unfold;
             lines.fromTo(
               outroWords,
               { yPercent: 115 },
-              { yPercent: 0, stagger: 0.015, duration: B.hold * 0.6, ease: "power3.out" },
-              unfoldEnd - B.unfold * 0.1,
+              { yPercent: 0, stagger: 0.015, duration: B.unfold * 0.4, ease: "power3.out" },
+              unfoldEnd - B.unfold * 0.5,
             );
           }
+
+          ScrollTrigger.create({
+            animation: lines,
+            trigger: el,
+            start: "top top",
+            end: () => `+=${pinned * vh()}`,
+            scrub: a.scrub,
+          });
 
           return () => {
             el.removeAttribute("data-unfolded");
