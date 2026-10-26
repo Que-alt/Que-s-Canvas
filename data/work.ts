@@ -113,9 +113,10 @@ export const workCategories: WorkCategory[] = [
     },
     projects: [
       {
-        title: "Safaricom",
-        description: "Street View Game",
-        slug: "safaricom-street-view-game",
+        title: "Baze",
+        description: "Entertainment App",
+        slug: "baze",
+        cover: { src: "/images/projects/baze/card.jpg", alt: "Baze's home screen on a phone" },
         tint: "#EEE7FA",
       },
       {

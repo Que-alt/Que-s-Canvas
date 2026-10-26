@@ -253,26 +253,25 @@ export const projects: Project[] = [
     },
   },
   {
-    slug: "safaricom-street-view-game",
-    title: "Safaricom Street View Game",
-    tagline: "Discovering the city through play.",
-    description:
-      "An interactive gaming experience that brought city exploration and brand engagement together through digital play.",
+    // From the Baze Pitch design file, submitted to Safaricom. The case-study copy, agency and
+    // role are still to come; until then the chapters show placeholders.
+    slug: "baze",
+    title: "Baze — Entertainment App",
+    tagline: "Find your favourite games, movies, music and so much more.",
+    description: "Baze, an entertainment app for games, movies and music, pitched to Safaricom.",
     category: CREATIVE,
-    client: "Safaricom",
-    agency: "Dentsu",
+    client: "Safaricom (pitch)",
+    cover: { src: "/images/projects/baze/banner.jpg", alt: "Baze welcome, home and movie screens on mobile" },
     tint: "#EEE7FA",
     caseStudy: {
-      challenge:
-        "Safaricom wanted to create an engaging digital experience that encouraged people to discover and learn more about their city. The opportunity was to move beyond traditional brand communication and create a more interactive way for audiences to connect with familiar places.",
-      approach:
-        "We brought together creative storytelling, experience design and interactive technology to develop a city-discovery game. The experience used playful interactions to encourage exploration, turning local discovery into an engaging digital activity.",
-      outcome:
-        "An interactive gaming experience that brought city exploration and brand engagement together through digital play.",
-      showcase: ["Game landing screen", "City environments", "Interactive gameplay", "Challenges", "End-of-game screens"],
-      role: ["Experience Strategy", "Creative Technology", "UX Leadership", "Implementation Oversight"],
+      gallery: [
+        { src: "/images/projects/baze/welcome.jpg", alt: "Baze welcome screen, home and browse-by-category on mobile", caption: "Welcome, home and categories" },
+        { src: "/images/projects/baze/movies.jpg", alt: "Baze movies: continue watching, for you, and Star Wars: The Last Jedi", caption: "Movies" },
+        { src: "/images/projects/baze/games-music.jpg", alt: "Baze games and music: Cyberpunk 2077 and popular artists", caption: "Games and music" },
+      ],
     },
   },
+
   {
     // From the "Cadbury Africa — AI Powered Library" slide and the ROA Gen 5 design file.
     // The case-study copy is still to come; until then the chapters show placeholders.
