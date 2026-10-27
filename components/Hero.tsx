@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, Observer, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { heroScenes, ringSkills, site } from "@/data/site";
 import AnimatedText, { plainText } from "./AnimatedText";
 
@@ -298,8 +298,82 @@ export default function Hero() {
               .to(q("[data-portrait-fade]"), { autoAlpha: 0.15, scale: 0.92 }, 0);
           }
 
+          // ── One statement per gesture ──
+          // While the hero is pinned, wheel, touch and arrow keys step to the next (or previous)
+          // statement instead of scrolling freely, so a fast flick can't skip any. A new step
+          // waits until the last one has played and the gesture (incl. trackpad momentum) has
+          // died down. The step after the last statement releases the page to scroll normally.
+          const pin = tl.scrollTrigger!;
+          // Scroll position of each step, worked out fresh each time (the pin moves on resize)
+          const stopsNow = () => {
+            const at = (beats: number) => pin.start + (pin.end - pin.start) * (beats / totalBeats);
+            const stops = [pin.start]; // the orb alone
+            scenes.forEach((_, i) => {
+              if (i === ci) {
+                // the correction scene takes two steps: the question, then the struck-through answer
+                stops.push(at(startBeat[i] + weight[i] * strikeAt * 0.5));
+                stops.push(at(startBeat[i] + weight[i] * (strikeAt + (1 - strikeAt) * 0.5)));
+              } else stops.push(at(startBeat[i] + Math.min(weight[i], 1) * 0.5));
+            });
+            return stops;
+          };
+          const QUIET_MS = 180; // input must pause this long before the next step
+          let busy = false;
+          let lastInput = 0;
+          const release = () => {
+            if (Date.now() - lastInput < QUIET_MS) gsap.delayedCall(QUIET_MS / 1000, release);
+            else busy = false;
+          };
+          const step = (dir: 1 | -1) => {
+            lastInput = Date.now();
+            if (busy) return;
+            const stops = stopsNow();
+            const y = window.scrollY;
+            let k = 0; // the last stop at or above the current position
+            while (k < stops.length - 1 && stops[k + 1] <= y + 2) k++;
+            const target = dir > 0 ? k + 1 : y - stops[k] > 4 ? k : k - 1;
+            if (target < 0) return;
+            busy = true;
+            // past the last statement: scroll on out of the pin and hand back to native scrolling
+            const top = target >= stops.length ? pin.end + 2 : stops[target];
+            gsap.to(window, {
+              scrollTo: { y: top, autoKill: false },
+              duration: reduce ? 0.3 : 0.9,
+              ease: "power2.inOut",
+              overwrite: true,
+              // let the statement's reveal play out before another step is taken
+              onComplete: () => gsap.delayedCall(reduce ? 0.1 : 0.35, release),
+            });
+          };
+          const stepper = Observer.create({
+            target: window,
+            type: "wheel,touch",
+            wheelSpeed: -1,
+            tolerance: 8,
+            preventDefault: true,
+            onDown: () => step(-1),
+            onUp: () => step(1),
+            onChange: () => (lastInput = Date.now()),
+          });
+          const keys: Record<string, 1 | -1> = { ArrowDown: 1, PageDown: 1, " ": 1, ArrowUp: -1, PageUp: -1 };
+          const onKey = (e: KeyboardEvent) => {
+            const dir = keys[e.key];
+            const typing = (e.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable]");
+            if (!dir || typing || e.shiftKey || e.altKey || e.metaKey || e.ctrlKey || !stepper.isEnabled) return;
+            e.preventDefault();
+            step(dir);
+          };
+          window.addEventListener("keydown", onKey);
+          // Only while pinned; scrolled past it (or coming back up into it) native scrolling stops
+          // at the edge and the steps take over.
+          const set = (on: boolean) => (on ? stepper.enable() : stepper.disable());
+          set(window.scrollY >= pin.start && window.scrollY < pin.end);
+          ScrollTrigger.create({ start: () => pin.start - 2, end: () => pin.end - 1, onToggle: (self) => set(self.isActive) });
+
           // the strike line is added by hand, so take it out again when this context reverts
           return () => {
+            stepper.kill();
+            window.removeEventListener("keydown", onKey);
             line?.remove();
             if (struck) struck.style.removeProperty("color");
           };
