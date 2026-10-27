@@ -121,8 +121,10 @@ export default async function CaseStudyPage({ params }: Props) {
   const roleIndex = ++n;
 
   // Screens and prototypes, or one labelled slot per screen still to come. Every third tile
-  // (1st, 4th, …) runs full width, the two between share a row.
-  const wide = (i: number) => i % 3 === 0;
+  // (1st, 4th, …) runs full width, the two between share a row, unless the gallery sets
+  // `wide` on its images, which then decides it image by image.
+  const explicit = cs.gallery?.some((img) => img.wide !== undefined);
+  const wide = (i: number) => (explicit ? !!cs.gallery?.[i]?.wide : i % 3 === 0);
   const work = (
     <div className="grid gap-5 sm:grid-cols-2">
       {cs.gallery?.length
