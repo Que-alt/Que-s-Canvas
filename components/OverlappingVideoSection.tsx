@@ -43,7 +43,7 @@ const BACK = { xPercent: -9, yPercent: 5, rotate: -6 };
 
 // Scroll budget, in viewport heights. The entrance plays before the pin (top at 85% → top).
 const ENTER = 0.85;
-const BEATS = { dwell: 0.15, swap: 0.6, unfold: 0.8, hold: 0.4 };
+const BEATS = { dwell: 0.15, swap: 0.6, unfold: 0.8, hold: 0.4, outro: 0.7, outroHold: 0.4 };
 
 /**
  * Three-card bridge between the hero and Selected Works.
@@ -52,6 +52,8 @@ const BEATS = { dwell: 0.15, swap: 0.6, unfold: 0.8, hold: 0.4 };
  *     The statements change with the front card, each card bringing its own line.
  *  3. The same three cards unfold into a row (a column on phones), the statements fade away,
  *     and the row holds briefly before the pin releases into Selected Works.
+ *  4. Phones only: the middle card of the column fades away and the closing statement rises
+ *     into its place, between the other two, before the pin releases.
  * One scrubbed timeline drives every card, so the sequence reverses exactly when scrolling up.
  */
 export default function OverlappingVideoSection({ cards, outro, animation, id = "capabilities" }: Props) {
@@ -96,8 +98,11 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
             swap: BEATS.swap * pace,
             unfold: BEATS.unfold * pace,
             hold: BEATS.hold * pace,
+            // phones only: the middle card gives way to the closing statement
+            outro: desktop || !outro ? 0 : BEATS.outro * pace,
+            outroHold: desktop || !outro ? 0 : BEATS.outroHold * pace,
           };
-          const pinned = B.dwell + 2 * B.swap + B.unfold + B.hold;
+          const pinned = B.dwell + 2 * B.swap + B.unfold + B.hold + B.outro + B.outroHold;
           const vh = () => window.innerHeight;
 
           // Final row (desktop/tablet) or column (phone): one uniform scale, so the cards keep
@@ -152,6 +157,7 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
           });
 
           const unfoldAt = ENTER + B.dwell + 2 * B.swap;
+          const outroAt = unfoldAt + B.unfold + B.hold; // phones: the middle card starts to fade
           const tl = gsap.timeline({
             defaults: { ease: "none", immediateRender: false },
             scrollTrigger: {
@@ -167,10 +173,10 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
                 snapTo: (v: number) => {
                   const T = ENTER + pinned;
                   if (v * T < ENTER) return v;
-                  const rests = [ENTER, ENTER + B.dwell, ENTER + B.dwell + B.swap, unfoldAt, unfoldAt + B.unfold, T];
+                  const rests = [ENTER, ENTER + B.dwell, ENTER + B.dwell + B.swap, unfoldAt, unfoldAt + B.unfold, outroAt, outroAt + B.outro, T];
                   const t = v * T;
-                  // inside a resting stretch (the first dwell, or the held row) nothing moves: stay put
-                  if (t <= ENTER + B.dwell || t >= unfoldAt + B.unfold) return v;
+                  // inside a resting stretch (the first dwell, the held row, the held closing line) nothing moves: stay put
+                  if (t <= ENTER + B.dwell || (t >= unfoldAt + B.unfold && t <= outroAt) || t >= outroAt + B.outro) return v;
                   return rests.reduce((a, b) => (Math.abs(b - t) < Math.abs(a - t) ? b : a)) / T;
                 },
                 duration: { min: 0.25, max: 0.7 },
@@ -183,7 +189,8 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
                 // hover effects only once the row has formed
                 el.toggleAttribute("data-unfolded", t > unfoldAt + B.unfold * 0.9);
                 const swap1 = ENTER + B.dwell + B.swap / 2;
-                const f = t < swap1 ? 0 : t < swap1 + B.swap ? 1 : t < unfoldAt + B.unfold * 0.5 ? 2 : -1;
+                // -2 once the middle card has faded on phones: only the outer two play
+                const f = t < swap1 ? 0 : t < swap1 + B.swap ? 1 : t < unfoldAt + B.unfold * 0.5 ? 2 : B.outro && t > outroAt + B.outro * 0.5 ? -2 : -1;
                 if (f !== frontRef.current) setFront((frontRef.current = f));
               },
             },
@@ -263,6 +270,15 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
           // ── Hold the finished row, then the pin releases into Selected Works
           tl.to({}, { duration: B.hold }, t + U);
 
+          // ── Phones: the middle card fades out, leaving its slot to the closing statement
+          if (B.outro) {
+            tl.to(card[1], { autoAlpha: 0, scale: () => layout().scale * 0.9, duration: B.outro * 0.45, ease: "power2.in" }, outroAt).to(
+              {},
+              { duration: B.outroHold },
+              outroAt + B.outro,
+            );
+          }
+
           // Statements: slide in from opposite sides, word by word. Kept in their own timeline
           // (never invalidated) so the words' hidden start state survives resizes.
           const shift = desktop ? a.textShift : a.textShift * 0.5;
@@ -318,6 +334,18 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
             );
           }
 
+          // Phones: the closing statement rises into the middle card's slot once it has gone
+          const outroPhone = q<HTMLElement>("[data-reel-outro-phone] [data-word]");
+          if (B.outro && outroPhone.length) {
+            gsap.set(outroPhone, { yPercent: 115 });
+            lines.fromTo(
+              outroPhone,
+              { yPercent: 115 },
+              { yPercent: 0, stagger: 0.03, duration: B.outro * 0.45, ease: "power3.out" },
+              outroAt - ENTER + B.outro * 0.45,
+            );
+          }
+
           ScrollTrigger.create({
             animation: lines,
             trigger: el,
@@ -329,6 +357,7 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
           return () => {
             el.removeAttribute("data-unfolded");
             if (placeOutro) ScrollTrigger.removeEventListener("refresh", placeOutro);
+            outroEl?.style.removeProperty("top");
           };
 
         },
@@ -401,9 +430,22 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
             className="relative aspect-[4/5] motion-reduce:grid motion-reduce:aspect-auto motion-reduce:gap-3 md:motion-reduce:grid-cols-3"
           >
             {cards.map((c, i) => (
-              <Card key={c.number} card={c} index={i} playing={front === -1 || front === i} />
+              <Card key={c.number} card={c} index={i} playing={front === -1 || front === i || (front === -2 && i !== 1)} />
             ))}
           </ul>
+          {outro && (
+            <div
+              data-reel-outro-phone
+              className="pointer-events-none absolute left-1/2 top-1/2 z-10 w-screen -translate-x-1/2 -translate-y-1/2 px-gutter text-center md:hidden motion-reduce:hidden"
+            >
+              {/* phones: the same line, in the middle card's slot once it has gone, the emphasis on its own line */}
+              <AnimatedText
+                as="p"
+                text={outro.replace(/\s+\*/, "{pause}*")}
+                className="mx-auto max-w-[9em] font-display font-normal leading-[1.05] tracking-[-0.04em] text-balance text-[clamp(1.75rem,8.5vw,2.75rem)]"
+              />
+            </div>
+          )}
         </div>
 
         <div

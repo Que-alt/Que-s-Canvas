@@ -225,11 +225,24 @@ h3 {
 .work-panel [data-work-card]:nth-child(2) {
   transition-delay: 0.2s;
 }
+/* Hidden pairs share the active pair's cell: let swipes through to the one on screen */
+.work-panel:not([data-state="current"]) {
+  pointer-events: none;
+}
 .work-panel:not([data-state="current"]) [data-work-card] {
   opacity: 0;
   scale: 0.97;
   transition-duration: 0.35s, 0.5s, 0.5s;
   transition-delay: 0s;
+}
+/* Only the pair on screen shows its dots and arrows */
+.work-panel [data-work-controls] {
+  transition: opacity 0.5s var(--ease-out-expo) 0.2s;
+}
+.work-panel:not([data-state="current"]) [data-work-controls] {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0s 0.3s;
 }
 .work-panel[data-state="past"] [data-work-card] {
   translate: 0 -28px;

@@ -317,6 +317,10 @@ export default function Hero() {
             });
             return stops;
           };
+          // Where the next section settles (its top at the top of the screen): the step after the
+          // last statement glides straight there instead of stopping at the end of the pin.
+          const after = (el.parentElement?.classList.contains("pin-spacer") ? el.parentElement : el).nextElementSibling;
+          const nextTop = () => Math.max(pin.end + 2, after ? after.getBoundingClientRect().top + window.scrollY : 0);
           const QUIET_MS = 180; // input must pause this long before the next step
           let busy = false;
           let lastInput = 0;
@@ -334,11 +338,12 @@ export default function Hero() {
             const target = dir > 0 ? k + 1 : y - stops[k] > 4 ? k : k - 1;
             if (target < 0) return;
             busy = true;
-            // past the last statement: scroll on out of the pin and hand back to native scrolling
-            const top = target >= stops.length ? pin.end + 2 : stops[target];
+            // past the last statement: scroll on out of the pin to the next section, then hand back
+            const out = target >= stops.length;
+            const top = out ? nextTop() : stops[target];
             gsap.to(window, {
               scrollTo: { y: top, autoKill: false },
-              duration: reduce ? 0.3 : 0.9,
+              duration: reduce ? 0.3 : out ? 1.1 : 0.9,
               ease: "power2.inOut",
               overwrite: true,
               // let the statement's reveal play out before another step is taken
@@ -364,11 +369,11 @@ export default function Hero() {
             step(dir);
           };
           window.addEventListener("keydown", onKey);
-          // Only while pinned; scrolled past it (or coming back up into it) native scrolling stops
-          // at the edge and the steps take over.
+          // Only while pinned or between the pin and the next section; scrolled past that (or
+          // coming back up into it) native scrolling stops at the edge and the steps take over.
           const set = (on: boolean) => (on ? stepper.enable() : stepper.disable());
-          set(window.scrollY >= pin.start && window.scrollY < pin.end);
-          ScrollTrigger.create({ start: () => pin.start - 2, end: () => pin.end - 1, onToggle: (self) => set(self.isActive) });
+          set(window.scrollY >= pin.start && window.scrollY < nextTop() - 1);
+          ScrollTrigger.create({ start: () => pin.start - 2, end: () => nextTop() - 1, onToggle: (self) => set(self.isActive) });
 
           // the strike line is added by hand, so take it out again when this context reverts
           return () => {

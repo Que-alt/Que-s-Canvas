@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { ArrowUpRight, Boxes, Gamepad2, Smartphone, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Boxes, Gamepad2, Smartphone, Sparkles } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import type { WorkCategory, WorkIcon, WorkProject } from "@/data/work";
 import AnimatedText from "./AnimatedText";
@@ -207,7 +207,7 @@ export default function WorkShowcase({ categories }: { categories: WorkCategory[
           </div>
 
           {/* Projects: every pair is laid out in the same cell; only the active one shows */}
-          <div className="mt-12 grid lg:mt-0">
+          <div className="mt-12 grid grid-cols-[minmax(0,1fr)] lg:mt-0">
             {categories.map((c, i) => (
               <div
                 key={c.id}
@@ -218,17 +218,83 @@ export default function WorkShowcase({ categories }: { categories: WorkCategory[
                 data-state={i < shown ? "past" : i > shown ? "next" : "current"}
                 className="work-panel col-start-1 row-start-1"
               >
-                <ul className="no-scrollbar -mx-gutter flex snap-x snap-mandatory scroll-px-(--gutter) gap-4 overflow-x-auto px-gutter pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-[clamp(1rem,1.7vw,2rem)]">
-                  {c.projects.map((p, j) => (
-                    <WorkCard key={p.title + p.description} project={p} number={i * 2 + j + 1} />
-                  ))}
-                </ul>
+                <ProjectPair category={c} offset={i * 2} />
               </div>
             ))}
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * A category's projects: side by side from tablets up; on phones a swipeable row with dots
+ * and arrows underneath, so it's clear there's another case study and how to reach it.
+ */
+function ProjectPair({ category, offset }: { category: WorkCategory; offset: number }) {
+  const row = useRef<HTMLUListElement>(null);
+  const [at, setAt] = useState(0);
+  const count = category.projects.length;
+
+  // Scroll position that rests card j at the row's left padding (the row is the cards' offsetParent)
+  const restAt = (el: HTMLUListElement, j: number) =>
+    (el.children[j] as HTMLElement).offsetLeft - parseFloat(getComputedStyle(el).paddingLeft);
+  const onScroll = () => {
+    const el = row.current;
+    if (!el) return;
+    const dist = category.projects.map((_, j) => Math.abs(restAt(el, j) - el.scrollLeft));
+    setAt(dist.indexOf(Math.min(...dist)));
+  };
+  const go = (j: number) => {
+    const el = row.current;
+    if (el && el.children[j]) el.scrollTo({ left: restAt(el, j), behavior: "smooth" });
+  };
+
+  return (
+    <>
+      <ul
+        ref={row}
+        onScroll={onScroll}
+        className="no-scrollbar relative -mx-(--gutter) flex snap-x snap-mandatory scroll-px-(--gutter) gap-4 overflow-x-auto overscroll-x-contain px-gutter pb-2 [touch-action:pan-x_pan-y] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-[clamp(1rem,1.7vw,2rem)]"
+      >
+        {category.projects.map((p, j) => (
+          <WorkCard key={p.title + p.description} project={p} number={offset + j + 1} />
+        ))}
+      </ul>
+      {count > 1 && (
+        <div data-work-controls className="mt-6 flex items-center justify-between md:hidden">
+          <div className="flex gap-2" aria-hidden>
+            {category.projects.map((p, j) => (
+              <span
+                key={p.title + p.description}
+                className={`h-1.5 shrink-0 rounded-full transition-[width,background-color] duration-500 ease-out-expo ${j === at ? "w-6 bg-ink" : "w-1.5 bg-ink/20"}`}
+              />
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {[
+              { dir: -1, Icon: ArrowLeft, label: "Previous case study" },
+              { dir: 1, Icon: ArrowRight, label: "Next case study" },
+            ].map(({ dir, Icon, label }) => {
+              const off = dir < 0 ? at === 0 : at === count - 1;
+              return (
+                <button
+                  key={dir}
+                  type="button"
+                  aria-label={label}
+                  disabled={off}
+                  onClick={() => go(at + dir)}
+                  className="grid size-11 cursor-pointer place-items-center rounded-full border border-ink/15 text-ink transition-opacity duration-300 disabled:cursor-default disabled:opacity-30"
+                >
+                  <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
