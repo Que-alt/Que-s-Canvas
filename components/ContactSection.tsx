@@ -103,8 +103,8 @@ function MagneticCTA({ onClick }: { onClick: () => void }) {
       className="group inline-flex items-center gap-5 rounded-full bg-white py-2.5 pl-8 pr-2.5 font-display text-xl font-medium tracking-[-0.02em] text-ink md:text-2xl"
     >
       Let&apos;s create something
-      <span className="grid size-14 place-items-center rounded-full bg-accent text-ink transition-transform duration-500 ease-out-expo group-hover:rotate-45 md:size-16">
-        <ArrowUpRight className="size-6" aria-hidden />
+      <span className="grid size-14 place-items-center rounded-full bg-accent text-ink md:size-16">
+        <ArrowUpRight className="size-6 transition-transform duration-500 ease-out-expo group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
       </span>
     </motion.button>
   );

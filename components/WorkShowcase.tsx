@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Boxes, Gamepad2, Smartphone, Sparkles } from "lucide-react";
+import { ArrowUpRight, Boxes, Gamepad2, Smartphone, Sparkles } from "lucide-react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import type { WorkCategory, WorkIcon, WorkProject } from "@/data/work";
 import AnimatedText from "./AnimatedText";
@@ -218,83 +218,17 @@ export default function WorkShowcase({ categories }: { categories: WorkCategory[
                 data-state={i < shown ? "past" : i > shown ? "next" : "current"}
                 className="work-panel col-start-1 row-start-1"
               >
-                <ProjectPair category={c} offset={i * 2} />
+                <ul className="no-scrollbar -mx-(--gutter) flex snap-x snap-mandatory scroll-px-(--gutter) gap-4 overflow-x-auto overscroll-x-contain px-gutter pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-[clamp(1rem,1.7vw,2rem)]">
+                  {c.projects.map((p, j) => (
+                    <WorkCard key={p.title + p.description} project={p} number={i * 2 + j + 1} total={categories.length * 2} />
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-/**
- * A category's projects: side by side from tablets up; on phones a swipeable row with dots
- * and arrows underneath, so it's clear there's another case study and how to reach it.
- */
-function ProjectPair({ category, offset }: { category: WorkCategory; offset: number }) {
-  const row = useRef<HTMLUListElement>(null);
-  const [at, setAt] = useState(0);
-  const count = category.projects.length;
-
-  // Scroll position that rests card j at the row's left padding (the row is the cards' offsetParent)
-  const restAt = (el: HTMLUListElement, j: number) =>
-    (el.children[j] as HTMLElement).offsetLeft - parseFloat(getComputedStyle(el).paddingLeft);
-  const onScroll = () => {
-    const el = row.current;
-    if (!el) return;
-    const dist = category.projects.map((_, j) => Math.abs(restAt(el, j) - el.scrollLeft));
-    setAt(dist.indexOf(Math.min(...dist)));
-  };
-  const go = (j: number) => {
-    const el = row.current;
-    if (el && el.children[j]) el.scrollTo({ left: restAt(el, j), behavior: "smooth" });
-  };
-
-  return (
-    <>
-      <ul
-        ref={row}
-        onScroll={onScroll}
-        className="no-scrollbar relative -mx-(--gutter) flex snap-x snap-mandatory scroll-px-(--gutter) gap-4 overflow-x-auto overscroll-x-contain px-gutter pb-2 [touch-action:pan-x_pan-y] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-[clamp(1rem,1.7vw,2rem)]"
-      >
-        {category.projects.map((p, j) => (
-          <WorkCard key={p.title + p.description} project={p} number={offset + j + 1} />
-        ))}
-      </ul>
-      {count > 1 && (
-        <div data-work-controls className="mt-6 flex items-center justify-between md:hidden">
-          <div className="flex gap-2" aria-hidden>
-            {category.projects.map((p, j) => (
-              <span
-                key={p.title + p.description}
-                className={`h-1.5 shrink-0 rounded-full transition-[width,background-color] duration-500 ease-out-expo ${j === at ? "w-6 bg-ink" : "w-1.5 bg-ink/20"}`}
-              />
-            ))}
-          </div>
-          <div className="flex gap-2">
-            {[
-              { dir: -1, Icon: ArrowLeft, label: "Previous case study" },
-              { dir: 1, Icon: ArrowRight, label: "Next case study" },
-            ].map(({ dir, Icon, label }) => {
-              const off = dir < 0 ? at === 0 : at === count - 1;
-              return (
-                <button
-                  key={dir}
-                  type="button"
-                  aria-label={label}
-                  disabled={off}
-                  onClick={() => go(at + dir)}
-                  className="grid size-11 cursor-pointer place-items-center rounded-full border border-ink/15 text-ink transition-opacity duration-300 disabled:cursor-default disabled:opacity-30"
-                >
-                  <Icon className="size-5" strokeWidth={1.75} aria-hidden />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </>
   );
 }
 
@@ -315,7 +249,7 @@ function CategoryThumb({ category }: { category: WorkCategory }) {
   );
 }
 
-function WorkCard({ project, number }: { project: WorkProject; number: number }) {
+function WorkCard({ project, number, total }: { project: WorkProject; number: number; total: number }) {
   const label = `${project.title} — ${project.description}`;
   const body = (
     <>
@@ -328,13 +262,17 @@ function WorkCard({ project, number }: { project: WorkProject; number: number })
           />
         </div>
 
-        <span className="absolute left-5 top-5 font-label text-xs tracking-[0.16em] text-ink/45 md:left-6 md:top-6">
-          {String(number).padStart(2, "0")}
+        {/* Its place in the set: a large numeral in the brand gradient, the total set small beside it */}
+        <span className="absolute left-5 top-3 flex items-baseline gap-1.5 md:left-6 md:top-4">
+          <span className="bg-[linear-gradient(135deg,var(--color-electric)_0%,var(--color-purple)_100%)] bg-clip-text font-display text-[clamp(1.5rem,2vw,2rem)] font-semibold leading-none tracking-[-0.05em] text-transparent">
+            {String(number).padStart(2, "0")}
+          </span>
+          <span className="font-label text-xs tracking-[0.16em] text-ink/30">/ {String(total).padStart(2, "0")}</span>
         </span>
 
         {project.slug ? (
           <span className="absolute right-5 top-5 grid size-12 translate-y-2 scale-90 place-items-center rounded-full bg-brand bg-iridescent text-white opacity-0 transition duration-500 ease-out-expo group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100">
-            <ArrowUpRight className="size-5 transition-transform duration-500 ease-out-expo group-hover:rotate-45" aria-hidden />
+            <ArrowUpRight className="size-5 transition-transform duration-500 ease-out-expo group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
           </span>
         ) : (
           <span className="absolute right-5 top-5 rounded-full bg-white/75 px-3 py-1.5 font-label text-[11px] uppercase tracking-[0.16em] text-ink-2 opacity-0 backdrop-blur transition-opacity duration-500 group-hover:opacity-100 [@media(hover:none)]:opacity-100">

@@ -8,9 +8,10 @@ const ORIGIN = "https://www.youtube-nocookie.com";
  * A YouTube video used as a silent, looping background: muted, no controls, no
  * interaction, cropped to cover its container. The player only loads once it's within a
  * screen of view, plays only while on screen and `active`, and never under reduced motion
- * (the thumbnail shows instead).
+ * (the thumbnail shows instead). `end` loops just the first `end` seconds, e.g. to leave out
+ * an end card.
  */
-export default function YouTubeLoop({ id, title, active = true }: { id: string; title: string; active?: boolean }) {
+export default function YouTubeLoop({ id, title, active = true, end }: { id: string; title: string; active?: boolean; end?: number }) {
   const wrap = useRef<HTMLSpanElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const [motionOk, setMotionOk] = useState(false);
@@ -57,13 +58,18 @@ export default function YouTubeLoop({ id, title, active = true }: { id: string; 
         const msg = JSON.parse(e.data);
         const state = msg.event === "onStateChange" ? msg.info : msg.info?.playerState;
         if (state === 1) setPlaying(true);
+        // cut the loop short: back to the start just before `end`
+        const time = msg.event === "infoDelivery" ? msg.info?.currentTime : undefined;
+        if (end && typeof time === "number" && time >= end - 0.25) {
+          frame.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "seekTo", args: [0, true] }), ORIGIN);
+        }
       } catch {
         // not a player message
       }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [embed]);
+  }, [embed, end]);
 
   // Subscribe to the player's state events once the embed has loaded
   const listen = () => {

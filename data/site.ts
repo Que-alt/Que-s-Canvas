@@ -92,6 +92,8 @@ export const heroScenes: {
 // Three-card section between the hero and Selected Works (components/OverlappingVideoSection.tsx).
 // Card visual, in order of preference: `youtube` (a YouTube video ID, played muted on a loop),
 // then `video` (self-hosted files), otherwise the rotating orb and skills ring from the hero.
+// `flip` (a second YouTube ID) turns the card over every few seconds between the two videos;
+// `flipEnd` plays only that video's first few seconds (e.g. to leave out an end logo).
 // Self-hosted footage: put the files in /public/video/cards and add e.g.
 //   video: { sources: [{ src: "/video/cards/ux-design.webm", type: "video/webm" },
 //                      { src: "/video/cards/ux-design.mp4", type: "video/mp4" }],
@@ -109,6 +111,8 @@ export type CapabilityCard = {
   title: string;
   tint: string;
   youtube?: string;
+  flip?: string;
+  flipEnd?: number;
   video?: { sources: { src: string; type: string }[]; poster?: string };
   href?: string;
 };
@@ -122,6 +126,7 @@ export const showreel: { cards: CapabilityCard[]; outro?: string } = {
       right: "that move millions.",
       title: "UX & Design",
       youtube: "9SK2h9cKL4s", // Product design
+      flip: "G2QlsCts-Ys", // Work: phone app
       tint: "linear-gradient(160deg, #a27be6 0%, #8558d2 55%, #7446c9 100%)", // light royal purple
     },
     {
@@ -140,6 +145,8 @@ export const showreel: { cards: CapabilityCard[]; outro?: string } = {
       right: "into *what's next.*",
       title: "AI & Innovation",
       youtube: "olzhOKs90lk", // Netti app
+      flip: "N8GWHEE-3pA", // Work 2: car dashboard
+      flipEnd: 3, // stop before the Morpheus logo
       tint: "linear-gradient(160deg, #4a1f70 0%, #33175a 55%, #1a0f2c 100%)", // deep royal purple
     },
   ],

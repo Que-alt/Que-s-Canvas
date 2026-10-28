@@ -43,6 +43,10 @@ const BACK = { xPercent: -9, yPercent: 5, rotate: -6 };
 
 // Scroll budget, in viewport heights. The entrance plays before the pin (top at 85% → top).
 const ENTER = 0.85;
+/** How long each side of a two-video card shows before it flips over, and the offset between cards. */
+const FLIP_MS = 7000;
+const FLIP_STAGGER_MS = 2300;
+
 const BEATS = { dwell: 0.15, swap: 0.6, unfold: 0.8, hold: 0.4, outro: 0.7, outroHold: 0.4 };
 
 /**
@@ -477,12 +481,49 @@ export default function OverlappingVideoSection({ cards, outro, animation, id = 
 }
 
 function Card({ card, index, playing }: { card: CapabilityCard; index: number; playing: boolean }) {
+  // Two-video cards turn over every few seconds while their video plays: a quarter turn away,
+  // the other video swaps in edge-on, then a quarter turn back. Never under reduced motion.
+  const flipper = useRef<HTMLSpanElement>(null);
+  const [side, setSide] = useState(0);
+  const [backLoaded, setBackLoaded] = useState(false); // the second player loads shortly before its first turn
+  useEffect(() => {
+    const el = flipper.current;
+    if (!card.flip || !playing || !el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let turn: gsap.core.Timeline | undefined;
+    let timer = 0;
+    const tick = () => {
+      // Slow and soft: a deep perspective keeps the turn flat, the card eases back a touch as it
+      // turns and settles forward again, and the two halves meet at full speed so there's no jolt
+      turn = gsap
+        .timeline({ defaults: { transformPerspective: 2600 } })
+        .to(el, { rotateY: 90, scale: 0.97, duration: 0.85, ease: "sine.in" })
+        .add(() => setSide((s) => 1 - s))
+        .fromTo(el, { rotateY: -90 }, { rotateY: 0, scale: 1, duration: 1.05, ease: "sine.out" });
+      timer = window.setTimeout(tick, FLIP_MS);
+    };
+    const preload = window.setTimeout(() => setBackLoaded(true), 500);
+    timer = window.setTimeout(tick, FLIP_MS + index * FLIP_STAGGER_MS);
+    return () => {
+      window.clearTimeout(preload);
+      window.clearTimeout(timer);
+      turn?.kill();
+      gsap.set(el, { rotateY: 0, scale: 1 });
+    };
+  }, [card.flip, playing, index]);
+
   const face = (
     <>
       {/* Final colour, revealed as the stack unfolds */}
       <span data-card-tint aria-hidden className="absolute inset-0 opacity-0" style={{ background: card.tint }} />
       {card.youtube ? (
-        <YouTubeLoop id={card.youtube} title={`${card.title} showreel`} active={playing} />
+        <>
+          <YouTubeLoop id={card.youtube} title={`${card.title} showreel`} active={playing && side === 0} />
+          {card.flip && backLoaded && (
+            <span className={`absolute inset-0 transition-opacity duration-300 ${side === 1 ? "" : "opacity-0"}`}>
+              <YouTubeLoop id={card.flip} title={`${card.title} showreel, part two`} active={playing && side === 1} end={card.flipEnd} />
+            </span>
+          )}
+        </>
       ) : card.video ? (
         // Footage is screened over the purple, so the card colour shows through dark areas
         <video
@@ -538,13 +579,15 @@ function Card({ card, index, playing }: { card: CapabilityCard; index: number; p
         className="absolute inset-0 rounded-(--reel-r) shadow-[0_50px_100px_-40px_rgba(26,15,44,0.55),0_18px_36px_-18px_rgba(39,39,87,0.35),0_0_0_1px_rgba(0,0,0,0.05)]"
         style={{ opacity: index === 0 ? 1 : 0 }}
       />
-      {card.href ? (
-        <Link href={card.href} className={`group ${faceClass}`}>
-          {face}
-        </Link>
-      ) : (
-        <div className={`group ${faceClass}`}>{face}</div>
-      )}
+      <span ref={flipper} className="absolute inset-0 block motion-reduce:relative">
+        {card.href ? (
+          <Link href={card.href} className={`group ${faceClass}`}>
+            {face}
+          </Link>
+        ) : (
+          <div className={`group ${faceClass}`}>{face}</div>
+        )}
+      </span>
     </li>
   );
 }
